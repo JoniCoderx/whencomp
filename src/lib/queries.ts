@@ -80,6 +80,39 @@ export async function getProfileBundle(userId: string) {
   };
 }
 
+// Team roster: the captain (main account) pinned first, then by activity.
+export async function getRoster() {
+  const { CAPTAIN_USERNAME } = await import("@/lib/config");
+  const users = await prisma.user.findMany({ where: { status: "ACTIVE" } });
+  const out = [];
+  for (const u of users) {
+    const parts = await prisma.participant.findMany({
+      where: { userId: u.id },
+      include: { match: { select: { status: true } } },
+    });
+    const stats = attendanceFromParticipations(
+      parts.map((p) => ({ status: p.status, outLate: p.outLate, attendance: p.attendance, match: { status: p.match.status } }))
+    );
+    out.push({
+      id: u.id,
+      username: u.username,
+      displayName: u.displayName,
+      avatarColor: u.avatarColor,
+      role: u.role,
+      steamProfile: u.steamProfile,
+      discordName: u.discordName,
+      matchesPlayed: u.matchesPlayed,
+      isCaptain: u.username === CAPTAIN_USERNAME,
+      reliability: computeReliability(stats),
+    });
+  }
+  out.sort((a, b) => {
+    if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
+    return b.matchesPlayed - a.matchesPlayed;
+  });
+  return out;
+}
+
 export async function getAdminUsers() {
   const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
   const out = [];

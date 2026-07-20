@@ -7,5 +7,8 @@ export const DISCORD_URL =
 
 export const APP_NAME = "WHEN COMP";
 
-// Max players per team. A comp = two teams.
-export const TEAM_SIZE = 5;
+// A comp is a single 5-stack — 5 players total, full at 5.
+export const COMP_CAPACITY = 5;
+
+// The captain (main account) is pinned to the top of the roster.
+export const CAPTAIN_USERNAME = "HackerMotherFucker";

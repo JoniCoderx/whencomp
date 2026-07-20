@@ -19,6 +19,7 @@ export function Navbar() {
   const links = [
     { href: "/", label: t("nav.home") },
     { href: "/matches", label: t("nav.matches") },
+    { href: "/players", label: t("nav.players") },
     { href: "/create", label: t("nav.create") },
     { href: "/notifications", label: t("nav.notifications") },
   ];

@@ -37,4 +37,4 @@ EXPOSE 3000
 # On start: sync the (Neon) schema, then launch. --accept-data-loss lets the
 # schema evolve during pre-launch without the deploy getting stuck on a
 # column change; db push is otherwise additive and idempotent.
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && npm run start"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node prisma/bootstrap.mjs && npm run start"]

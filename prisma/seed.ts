@@ -15,18 +15,30 @@ async function main() {
   await prisma.user.deleteMany();
 
   const hash = await bcrypt.hash("password123", 10);
-  const names = ["Neo", "Viper", "Ghost", "Blaze", "Nova", "Rogue", "Ace", "Storm"];
+  // Real roster (captain first = admin), plus a couple extras for waitlist demos.
+  const roster = [
+    { u: "HackerMotherFucker", steam: "https://steamcommunity.com/id/HackerMotherFucker", admin: true },
+    { u: "ChutmarikaIL", steam: "https://steamcommunity.com/id/ChutmarikaIL" },
+    { u: "HextoN_O", steam: "https://steamcommunity.com/id/HextoN_O" },
+    { u: "Negroniko", steam: "https://steamcommunity.com/id/Negroniko" },
+    { u: "player_414396", steam: "https://steamcommunity.com/profiles/76561198169414396" },
+    { u: "player_898544", steam: "https://steamcommunity.com/profiles/76561198830898544" },
+    { u: "player_502816", steam: "https://steamcommunity.com/profiles/76561198227502816" },
+    { u: "Nova" },
+    { u: "Storm" },
+  ];
   const users = [];
-  for (let i = 0; i < names.length; i++) {
+  for (let i = 0; i < roster.length; i++) {
+    const r = roster[i];
     users.push(
       await prisma.user.create({
         data: {
-          username: names[i],
-          displayName: names[i],
+          username: r.u,
+          displayName: r.u,
           passwordHash: hash,
-          role: i === 0 ? "ADMIN" : "USER",
+          role: r.admin ? "ADMIN" : "USER",
+          steamProfile: r.steam ?? null,
           avatarColor: COLORS[i % COLORS.length],
-          discordName: `${names[i]}#${1000 + i}`,
           elo: 900 + ((i * 137) % 500),
           matchesPlayed: 4 + ((i * 5) % 15),
         },
@@ -84,7 +96,7 @@ async function main() {
   await prisma.notification.create({ data: { userId: users[0].id, kind: "FULL", body: "הקומפ 'מסיבת ריטייק' התמלא", matchId: null } });
 
   console.log(`✅ ${users.length} users, ${comps.length + 1} comps.`);
-  console.log("👑 Admin: Neo / password123");
+  console.log("👑 Captain/Admin: HackerMotherFucker / password123");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());

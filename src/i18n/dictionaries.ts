@@ -8,6 +8,7 @@ export const he: Record<string, string> = {
   "nav.matches": "קומפים",
   "nav.create": "יצירת קומפ",
   "nav.notifications": "התראות",
+  "nav.players": "שחקנים",
   "nav.profile": "פרופיל",
   "nav.admin": "ניהול",
   "nav.login": "כניסה",
