@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-base-950 text-slate-100 antialiased;
+    background-image: var(--tw-bg-grid, none);
+    min-height: 100dvh;
+    /* Native-app feel: prevent pull-to-refresh / overscroll bounce */
+    overscroll-behavior: none;
+  }
+
+  /* Light theme surface */
+  :root.light body {
+    @apply bg-slate-50 text-slate-900;
+  }
+
+  ::selection {
+    background: rgba(168, 85, 247, 0.35);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-base-600 rounded-full;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-base-800/60 backdrop-blur-xl border border-white/5;
+  }
+  :root.light .glass {
+    @apply bg-white/70 border-black/5;
+  }
+
+  .neon-border {
+    position: relative;
+  }
+  .neon-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #3b82f6, #a855f7, #22d3ee);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition-all duration-200 active:scale-[0.97] select-none;
+  }
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-neon-blue to-neon-purple text-white shadow-neon-purple hover:shadow-neon-blue hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn bg-white/5 hover:bg-white/10 text-slate-100 border border-white/10;
+  }
+  :root.light .btn-ghost {
+    @apply bg-black/5 hover:bg-black/10 text-slate-800 border-black/10;
+  }
+
+  .card {
+    @apply glass rounded-2xl p-5 shadow-glow-soft;
+  }
+
+  .input {
+    @apply w-full rounded-xl bg-base-800/80 border border-white/10 px-4 py-3 text-slate-100 outline-none transition
+      focus:border-neon-purple focus:ring-2 focus:ring-neon-purple/30 placeholder:text-slate-500;
+  }
+  :root.light .input {
+    @apply bg-white border-black/10 text-slate-900 placeholder:text-slate-400;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 24px rgba(168, 85, 247, 0.55);
+  }
+  .bg-grid {
+    background-size: 44px 44px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+  .no-tap {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

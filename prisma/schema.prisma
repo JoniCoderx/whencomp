@@ -1,0 +1,81 @@
+// When Comp — Prisma schema (SQLite)
+// Models: User, Match, Participant, Rating
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  passwordHash  String
+  displayName   String?
+  steamProfile  String? // Steam profile URL / id (placeholder for Steam OAuth)
+  avatarColor   String   @default("#3b82f6")
+  elo           Int      @default(1000)
+  mvpCount      Int      @default(0)
+  matchesPlayed Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  createdMatches Match[]       @relation("MatchCreator")
+  participations Participant[]
+
+  // Ratings this user has cast and received
+  ratingsGiven    Rating[] @relation("RatingFrom")
+  ratingsReceived Rating[] @relation("RatingTo")
+}
+
+model Match {
+  id          String   @id @default(cuid())
+  title       String
+  game        String // CS2 | Valorant | COD | ...
+  scheduledAt DateTime
+  status      String   @default("UPCOMING") // UPCOMING | LIVE | COMPLETED | CANCELLED
+  discordLink String?
+  maxPlayers  Int      @default(10)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  creatorId String
+  creator   User   @relation("MatchCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  participants Participant[]
+  ratings      Rating[]
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  team      String   @default("UNASSIGNED") // A | B | UNASSIGNED
+  joinedAt  DateTime @default(now())
+  mvpVoteId String? // participant/user id this player voted MVP for
+  fpsRating Int? // reported server FPS quality 1-5
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  kind      String // MVP | FPS | GENERAL
+  value     Int      @default(0)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  fromUserId String
+  fromUser   User   @relation("RatingFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  toUserId String?
+  toUser   User?   @relation("RatingTo", fields: [toUserId], references: [id], onDelete: SetNull)
+}
