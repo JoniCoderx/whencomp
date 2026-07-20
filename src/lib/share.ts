@@ -56,6 +56,21 @@ export function buildIcs(m: ShareMatch): string {
     .join("\r\n");
 }
 
+// Google Calendar "create event" template URL (works on web + Android + iOS).
+export function googleCalendarUrl(m: ShareMatch): string {
+  const start = new Date(m.scheduledAt);
+  const end = new Date(start.getTime() + 90 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const details = [`קומפ WHEN COMP`, m.discordLink ? `דיסקורד: ${m.discordLink}` : "", m.url].filter(Boolean).join("\n");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${m.title} — WHEN COMP`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export function downloadIcs(m: ShareMatch) {
   const blob = new Blob([buildIcs(m)], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);

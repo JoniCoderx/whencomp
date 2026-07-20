@@ -80,10 +80,21 @@ export async function getProfileBundle(userId: string) {
   };
 }
 
-// Team roster: the captain (main account) pinned first, then by activity.
-export async function getRoster() {
+// Team roster ranked by community votes ("top scores"). viewerId marks which
+// players the current user has already voted for.
+export async function getRoster(viewerId?: string) {
   const { CAPTAIN_USERNAME } = await import("@/lib/config");
   const users = await prisma.user.findMany({ where: { status: "ACTIVE" } });
+
+  const [voteGroups, myVotes] = await Promise.all([
+    prisma.playerVote.groupBy({ by: ["targetId"], _count: { targetId: true } }),
+    viewerId
+      ? prisma.playerVote.findMany({ where: { voterId: viewerId }, select: { targetId: true } })
+      : Promise.resolve([]),
+  ]);
+  const votesByTarget = new Map(voteGroups.map((g) => [g.targetId, g._count.targetId]));
+  const myVoted = new Set(myVotes.map((v) => v.targetId));
+
   const out = [];
   for (const u of users) {
     const parts = await prisma.participant.findMany({
@@ -103,13 +114,13 @@ export async function getRoster() {
       discordName: u.discordName,
       matchesPlayed: u.matchesPlayed,
       isCaptain: u.username === CAPTAIN_USERNAME,
+      votes: votesByTarget.get(u.id) ?? 0,
+      votedByMe: myVoted.has(u.id),
       reliability: computeReliability(stats),
     });
   }
-  out.sort((a, b) => {
-    if (a.isCaptain !== b.isCaptain) return a.isCaptain ? -1 : 1;
-    return b.matchesPlayed - a.matchesPlayed;
-  });
+  // Top scores: most votes first, then matches, captain wins ties.
+  out.sort((a, b) => b.votes - a.votes || b.matchesPlayed - a.matchesPlayed || (a.isCaptain ? -1 : 1));
   return out;
 }
 

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
-import { buildShareText, whatsappLink, downloadIcs, nativeShare, type ShareMatch } from "@/lib/share";
+import { buildShareText, whatsappLink, nativeShare, type ShareMatch } from "@/lib/share";
 import { sfx } from "@/lib/sound";
+import { CalendarButton } from "./CalendarButton";
 import type { MatchDTO } from "@/lib/types";
 
 export function ShareBar({ match }: { match: MatchDTO }) {
@@ -30,9 +31,7 @@ export function ShareBar({ match }: { match: MatchDTO }) {
       <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-success text-sm no-tap">
         <span>📲</span> {t("lobby.whatsapp")}
       </a>
-      <button onClick={() => { sfx.soft(); downloadIcs(sm); }} className="btn-ghost text-sm no-tap">
-        <span>🗓️</span> {t("lobby.calendar")}
-      </button>
+      <CalendarButton matchId={match.id} share={sm} />
       <button
         onClick={async () => { sfx.click(); const ok = await nativeShare(sm); if (!ok) { await navigator.clipboard.writeText(url); flash(); } }}
         className="btn-ghost text-sm no-tap"

@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { formatMatchTime, cn } from "@/lib/format";
 import { sfx } from "@/lib/sound";
-import { buildShareText, whatsappLink, downloadIcs, type ShareMatch } from "@/lib/share";
+import { buildShareText, whatsappLink, type ShareMatch } from "@/lib/share";
 import { Avatar } from "./Avatar";
+import { CalendarButton } from "./CalendarButton";
 import { GameLogo } from "./GameLogo";
 import { Countdown } from "./Countdown";
 import { StatusBadge } from "./StatusBadge";
@@ -77,9 +78,7 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
         <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2 text-sm no-tap" title="WhatsApp">
           📲
         </a>
-        <button onClick={() => { sfx.soft(); downloadIcs(sm); }} className="btn-ghost !px-3 !py-2 text-sm no-tap" title="יומן">
-          🗓️
-        </button>
+        <CalendarButton matchId={match.id} share={sm} compact />
       </div>
     </motion.div>
   );

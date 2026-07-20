@@ -33,6 +33,21 @@ model User {
   messages       Message[]
   notifications  Notification[]
   auditLogs      AuditLog[]     @relation("AuditActor")
+  votesGiven     PlayerVote[]   @relation("VoteFrom")
+  votesReceived  PlayerVote[]   @relation("VoteTo")
+}
+
+// Community up-votes for players (one per voter per target). Powers "top scores".
+model PlayerVote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  voterId  String
+  voter    User   @relation("VoteFrom", fields: [voterId], references: [id], onDelete: Cascade)
+  targetId String
+  target   User   @relation("VoteTo", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([voterId, targetId])
 }
 
 model Match {

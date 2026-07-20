@@ -17,15 +17,15 @@ async function main() {
   const hash = await bcrypt.hash("password123", 10);
   // Real roster (captain first = admin), plus a couple extras for waitlist demos.
   const roster = [
-    { u: "HackerMotherFucker", steam: "https://steamcommunity.com/id/HackerMotherFucker", admin: true },
-    { u: "ChutmarikaIL", steam: "https://steamcommunity.com/id/ChutmarikaIL" },
-    { u: "HextoN_O", steam: "https://steamcommunity.com/id/HextoN_O" },
-    { u: "Negroniko", steam: "https://steamcommunity.com/id/Negroniko" },
-    { u: "player_414396", steam: "https://steamcommunity.com/profiles/76561198169414396" },
-    { u: "player_898544", steam: "https://steamcommunity.com/profiles/76561198830898544" },
-    { u: "player_502816", steam: "https://steamcommunity.com/profiles/76561198227502816" },
-    { u: "Nova" },
-    { u: "Storm" },
+    { u: "HackerMotherFucker", d: "Sharmuta #1", steam: "https://steamcommunity.com/id/HackerMotherFucker", admin: true },
+    { u: "ChutmarikaIL", d: "ChutMarika!", steam: "https://steamcommunity.com/id/ChutmarikaIL" },
+    { u: "HextoN_O", d: "HextoN", steam: "https://steamcommunity.com/id/HextoN_O" },
+    { u: "Negroniko", d: "Negroni", steam: "https://steamcommunity.com/id/Negroniko" },
+    { u: "player_414396", d: "Audi A1 2013 1.4T", steam: "https://steamcommunity.com/profiles/76561198169414396" },
+    { u: "player_898544", d: "Hassan Nasrallah", steam: "https://steamcommunity.com/profiles/76561198830898544" },
+    { u: "player_502816", d: "סמדי בומבה פרימום", steam: "https://steamcommunity.com/profiles/76561198227502816" },
+    { u: "Nova", d: "Nova" },
+    { u: "Storm", d: "Storm" },
   ];
   const users = [];
   for (let i = 0; i < roster.length; i++) {
@@ -34,7 +34,7 @@ async function main() {
       await prisma.user.create({
         data: {
           username: r.u,
-          displayName: r.u,
+          displayName: r.d,
           passwordHash: hash,
           role: r.admin ? "ADMIN" : "USER",
           steamProfile: r.steam ?? null,

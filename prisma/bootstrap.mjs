@@ -17,13 +17,13 @@ const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6"
 
 // Order matters — the first entry is the captain (pinned on top, admin).
 const ROSTER = [
-  { username: "HackerMotherFucker", display: "HackerMotherFucker", steam: "https://steamcommunity.com/id/HackerMotherFucker", captain: true },
-  { username: "ChutmarikaIL",       display: "ChutmarikaIL",       steam: "https://steamcommunity.com/id/ChutmarikaIL" },
-  { username: "HextoN_O",           display: "HextoN_O",           steam: "https://steamcommunity.com/id/HextoN_O" },
-  { username: "Negroniko",          display: "Negroniko",          steam: "https://steamcommunity.com/id/Negroniko" },
-  { username: "player_414396",      display: "Player 414396",      steam: "https://steamcommunity.com/profiles/76561198169414396" },
-  { username: "player_898544",      display: "Player 898544",      steam: "https://steamcommunity.com/profiles/76561198830898544" },
-  { username: "player_502816",      display: "Player 502816",      steam: "https://steamcommunity.com/profiles/76561198227502816" },
+  { username: "HackerMotherFucker", display: "Sharmuta #1",         steam: "https://steamcommunity.com/id/HackerMotherFucker", captain: true },
+  { username: "ChutmarikaIL",       display: "ChutMarika!",        steam: "https://steamcommunity.com/id/ChutmarikaIL" },
+  { username: "HextoN_O",           display: "HextoN",             steam: "https://steamcommunity.com/id/HextoN_O" },
+  { username: "Negroniko",          display: "Negroni",            steam: "https://steamcommunity.com/id/Negroniko" },
+  { username: "player_414396",      display: "Audi A1 2013 1.4T",  steam: "https://steamcommunity.com/profiles/76561198169414396" },
+  { username: "player_898544",      display: "Hassan Nasrallah",   steam: "https://steamcommunity.com/profiles/76561198830898544" },
+  { username: "player_502816",      display: "סמדי בומבה פרימום",   steam: "https://steamcommunity.com/profiles/76561198227502816" },
 ];
 
 async function main() {
