@@ -2,37 +2,33 @@ export type GameKey = "CS2" | "Valorant" | "COD";
 
 export interface GameMeta {
   key: GameKey;
-  label: string;
-  accent: string; // tailwind text color
-  glow: string; // tailwind shadow
+  label: string; // Hebrew-friendly short label
+  full: string;
+  accent: string; // hex accent
   emoji: string;
-  gradient: string;
 }
 
 export const GAMES: Record<GameKey, GameMeta> = {
   CS2: {
     key: "CS2",
-    label: "Counter-Strike 2",
-    accent: "text-neon-electric",
-    glow: "shadow-neon-cyan",
-    emoji: "🔫",
-    gradient: "from-cyan-500/20 to-blue-600/10",
+    label: "CS2",
+    full: "Counter-Strike 2",
+    accent: "#f59e0b",
+    emoji: "🎯",
   },
   Valorant: {
     key: "Valorant",
     label: "Valorant",
-    accent: "text-neon-pink",
-    glow: "shadow-neon-purple",
-    emoji: "🎯",
-    gradient: "from-pink-500/20 to-red-600/10",
+    full: "Valorant",
+    accent: "#ff4655",
+    emoji: "⚡",
   },
   COD: {
     key: "COD",
-    label: "Call of Duty",
-    accent: "text-neon-lime",
-    glow: "shadow-neon-blue",
+    label: "COD",
+    full: "Call of Duty",
+    accent: "#84cc16",
     emoji: "💥",
-    gradient: "from-lime-500/20 to-green-600/10",
   },
 };
 

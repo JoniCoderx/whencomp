@@ -1,124 +1,85 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { useSession } from "next-auth/react";
 import { useI18n } from "@/i18n/I18nProvider";
-import { gameMeta } from "@/lib/games";
 import { formatMatchTime, cn } from "@/lib/format";
 import { sfx } from "@/lib/sound";
+import { buildShareText, whatsappLink, downloadIcs, type ShareMatch } from "@/lib/share";
 import { Avatar } from "./Avatar";
+import { GameLogo } from "./GameLogo";
+import { Countdown } from "./Countdown";
+import { StatusBadge } from "./StatusBadge";
+import { CompActions } from "./CompActions";
 import type { MatchDTO } from "@/lib/types";
 
 export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: number }) {
-  const { t, locale } = useI18n();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
+  const spots = match.confirmed.length;
 
-  const meta = gameMeta(match.game);
-  const userId = (session?.user as any)?.id;
-  const joined = !!userId && match.participants.some((p) => p.userId === userId);
-  const full = match.participants.length >= match.maxPlayers;
-
-  async function toggleJoin() {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
-    setLoading(true);
-    joined ? sfx.soft() : sfx.join();
-    try {
-      const res = await fetch(`/api/matches/${match.id}/join`, {
-        method: joined ? "DELETE" : "POST",
-      });
-      if (res.ok) router.refresh();
-    } finally {
-      setLoading(false);
-    }
-  }
+  const sm: ShareMatch = {
+    title: match.title,
+    scheduledAt: match.scheduledAt,
+    url: typeof window !== "undefined" ? `${window.location.origin}/matches/${match.id}` : `/matches/${match.id}`,
+    confirmed: spots,
+    capacity: match.capacity,
+    discordLink: match.discordLink,
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.05, 0.4), type: "spring", stiffness: 120, damping: 18 }}
-      whileHover={{ y: -4 }}
-      className={cn(
-        "card group relative overflow-hidden bg-gradient-to-br",
-        meta.gradient
-      )}
+      transition={{ delay: Math.min(index * 0.05, 0.35) }}
+      className="card flex flex-col gap-4"
     >
-      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <div className={cn("absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl", meta.glow)} />
-      </div>
-
-      <div className="relative flex items-start justify-between gap-3">
-        <div>
-          <span className={cn("chip bg-white/5", meta.accent)}>
-            <span>{meta.emoji}</span>
-            {match.game}
-          </span>
-          <Link href={`/matches/${match.id}`}>
-            <h3 className="mt-2 font-display text-lg font-bold leading-tight hover:text-neon-purple transition">
-              {match.title}
-            </h3>
-          </Link>
-          <p className="mt-0.5 text-sm text-slate-400">
-            {formatMatchTime(match.scheduledAt, locale)}
-          </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-white/5">
+            <GameLogo game={match.game} size={26} />
+          </div>
+          <div>
+            <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()}>
+              <h3 className="font-display text-lg font-bold leading-tight hover:text-brand-400">{match.title}</h3>
+            </Link>
+            <p className="text-sm text-slate-400">{formatMatchTime(match.scheduledAt)}</p>
+          </div>
         </div>
-        {match.status !== "UPCOMING" && (
-          <span className="chip bg-white/5 text-slate-300 text-[10px] uppercase">
-            {match.status}
-          </span>
-        )}
+        <StatusBadge match={match} />
       </div>
 
-      <div className="relative mt-4 flex items-center justify-between">
-        <div className="flex -space-x-2">
-          {match.participants.slice(0, 5).map((p) => (
-            <div key={p.id} className="ring-2 ring-base-900 rounded-full">
+      <div className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3 py-2">
+        <span className="text-xs text-slate-400">{t("board.starts")}</span>
+        <Countdown to={match.scheduledAt} compact />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex -space-x-2 space-x-reverse">
+          {match.confirmed.slice(0, 5).map((p) => (
+            <div key={p.id} className="rounded-full ring-2 ring-ink-850">
               <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={30} />
             </div>
           ))}
-          {match.participants.length > 5 && (
-            <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-base-700 text-[11px] font-bold ring-2 ring-base-900">
-              +{match.participants.length - 5}
-            </span>
-          )}
-          {match.participants.length === 0 && (
-            <span className="text-xs text-slate-500">—</span>
-          )}
+          {spots === 0 && <span className="text-xs text-slate-500">אין עדיין נרשמים</span>}
         </div>
-        <span className="text-xs font-semibold text-slate-400">
-          {match.participants.length}/{match.maxPlayers} {t("board.players")}
+        <span className="text-sm font-bold">
+          <span className={cn(spots >= match.capacity ? "text-slate-400" : "text-brand-400")}>{spots}</span>
+          <span className="text-slate-500"> / {match.capacity}</span>
         </span>
       </div>
 
-      <div className="relative mt-4 flex items-center gap-2">
-        <button
-          disabled={loading || (full && !joined)}
-          onClick={toggleJoin}
-          className={cn(
-            "flex-1 no-tap",
-            joined ? "btn-ghost" : "btn-primary",
-            (full && !joined) && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {loading
-            ? "…"
-            : joined
-            ? t("board.leave")
-            : full
-            ? t("board.full")
-            : t("board.join")}
-        </button>
-        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="btn-ghost no-tap">
+      <CompActions match={match} />
+
+      <div className="flex items-center gap-2 border-t border-white/5 pt-3">
+        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="btn-ghost flex-1 !py-2 text-sm no-tap">
           {t("board.view")}
         </Link>
+        <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2 text-sm no-tap" title="WhatsApp">
+          📲
+        </a>
+        <button onClick={() => { sfx.soft(); downloadIcs(sm); }} className="btn-ghost !px-3 !py-2 text-sm no-tap" title="יומן">
+          🗓️
+        </button>
       </div>
     </motion.div>
   );

@@ -1,140 +1,141 @@
 import { prisma } from "@/lib/prisma";
 import { matchInclude, toMatchDTO } from "@/lib/serialize";
 import type { MatchDTO } from "@/lib/types";
+import { attendanceFromParticipations, computeReliability } from "@/lib/reliability";
 
 export async function getUpcomingMatches(limit?: number): Promise<MatchDTO[]> {
   const matches = await prisma.match.findMany({
-    where: { status: { in: ["UPCOMING", "LIVE"] } },
+    where: { status: { in: ["UPCOMING", "LIVE"] }, isPrivate: false },
     orderBy: { scheduledAt: "asc" },
     take: limit,
     include: matchInclude,
   });
-  return matches.map(toMatchDTO);
+  return matches.map((m) => toMatchDTO(m));
 }
 
-export async function getAllMatches(): Promise<MatchDTO[]> {
+export async function getAllPublicMatches(): Promise<MatchDTO[]> {
   const matches = await prisma.match.findMany({
+    where: { isPrivate: false },
     orderBy: { scheduledAt: "asc" },
     include: matchInclude,
   });
-  return matches.map(toMatchDTO);
+  return matches.map((m) => toMatchDTO(m));
 }
 
-export async function getMatch(id: string): Promise<MatchDTO | null> {
+export async function getMatch(id: string, viewerId?: string): Promise<MatchDTO | null> {
   const m = await prisma.match.findUnique({ where: { id }, include: matchInclude });
+  if (!m) return null;
+  const isCreator = viewerId && m.creatorId === viewerId;
+  return toMatchDTO(m, !!isCreator);
+}
+
+export async function getMatchByInvite(code: string): Promise<MatchDTO | null> {
+  const m = await prisma.match.findUnique({ where: { inviteCode: code }, include: matchInclude });
   return m ? toMatchDTO(m) : null;
 }
 
-export async function getLeaderboard(limit = 25) {
-  const users = await prisma.user.findMany({
-    orderBy: [{ elo: "desc" }, { mvpCount: "desc" }],
-    take: limit,
-  });
-  return users.map((u) => ({
-    id: u.id,
-    username: u.username,
-    displayName: u.displayName,
-    avatarColor: u.avatarColor,
-    elo: u.elo,
-    mvpCount: u.mvpCount,
-    matchesPlayed: u.matchesPlayed,
-  }));
-}
+// Full profile bundle: user, upcoming, history, attendance + reliability.
+export async function getProfileBundle(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return null;
 
-/**
- * Nemesis = the opponent (different team) this user has faced across the most
- * completed matches. Pure logic, no AI. Returns null when there isn't one yet.
- */
-export async function getNemesis(userId: string) {
-  const myParts = await prisma.participant.findMany({
-    where: { userId, match: { status: "COMPLETED" } },
-    include: {
-      match: { include: { participants: { include: { user: true } } } },
-    },
+  const parts = await prisma.participant.findMany({
+    where: { userId },
+    include: { match: { include: matchInclude } },
+    orderBy: { match: { scheduledAt: "desc" } },
   });
 
-  const counts = new Map<string, { user: any; count: number }>();
-  for (const mp of myParts) {
-    for (const opp of mp.match.participants) {
-      if (opp.userId === userId) continue;
-      if (opp.team === mp.team) continue; // only true opponents
-      const entry = counts.get(opp.userId) ?? { user: opp.user, count: 0 };
-      entry.count += 1;
-      counts.set(opp.userId, entry);
-    }
-  }
+  const now = Date.now();
+  const upcoming = parts
+    .filter((p) => p.status !== "OUT" && new Date(p.match.scheduledAt).getTime() > now && p.match.status !== "CANCELLED")
+    .map((p) => toMatchDTO(p.match))
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
 
-  let best: { user: any; count: number } | null = null;
-  for (const e of counts.values()) {
-    if (!best || e.count > best.count) best = e;
-  }
-  if (!best) return null;
+  const history = parts
+    .filter((p) => new Date(p.match.scheduledAt).getTime() <= now || p.match.status === "COMPLETED")
+    .map((p) => ({ match: toMatchDTO(p.match), status: p.status, outLate: p.outLate }));
+
+  const stats = attendanceFromParticipations(
+    parts.map((p) => ({ status: p.status, outLate: p.outLate, attendance: p.attendance, match: { status: p.match.status } }))
+  );
+  const reliability = computeReliability(stats);
+
   return {
-    id: best.user.id,
-    username: best.user.username,
-    displayName: best.user.displayName,
-    avatarColor: best.user.avatarColor,
-    elo: best.user.elo,
-    encounters: best.count,
+    user: {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      avatarColor: user.avatarColor,
+      role: user.role,
+      steamProfile: user.steamProfile,
+      discordName: user.discordName,
+      elo: user.elo,
+      mvpCount: user.mvpCount,
+      matchesPlayed: user.matchesPlayed,
+    },
+    upcoming,
+    history,
+    stats,
+    reliability,
   };
 }
 
-/** Compute earned trophies from pure stats — no AI. */
-export interface Trophy {
-  key: string;
-  label: string;
-  emoji: string;
-  desc: string;
-  earned: boolean;
+export async function getAdminUsers() {
+  const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+  const out = [];
+  for (const u of users) {
+    const parts = await prisma.participant.findMany({
+      where: { userId: u.id },
+      include: { match: { select: { status: true } } },
+    });
+    const stats = attendanceFromParticipations(
+      parts.map((p) => ({ status: p.status, outLate: p.outLate, attendance: p.attendance, match: { status: p.match.status } }))
+    );
+    out.push({
+      id: u.id,
+      username: u.username,
+      displayName: u.displayName,
+      avatarColor: u.avatarColor,
+      role: u.role,
+      status: u.status,
+      chatBanned: u.chatBanned,
+      suspendedUntil: u.suspendedUntil ? u.suspendedUntil.toISOString() : null,
+      elo: u.elo,
+      mvpCount: u.mvpCount,
+      matchesPlayed: u.matchesPlayed,
+      createdAt: u.createdAt.toISOString(),
+      reliability: computeReliability(stats),
+      stats,
+    });
+  }
+  return out;
 }
 
-export function computeTrophies(u: {
-  elo: number;
-  mvpCount: number;
-  matchesPlayed: number;
-}): Trophy[] {
-  return [
-    {
-      key: "first-blood",
-      label: "First Blood",
-      emoji: "🩸",
-      desc: "Played your first match",
-      earned: u.matchesPlayed >= 1,
-    },
-    {
-      key: "mvp",
-      label: "Certified MVP",
-      emoji: "⭐",
-      desc: "Won at least one MVP",
-      earned: u.mvpCount >= 1,
-    },
-    {
-      key: "triple-mvp",
-      label: "Triple Threat",
-      emoji: "🔥",
-      desc: "Won 3+ MVP awards",
-      earned: u.mvpCount >= 3,
-    },
-    {
-      key: "veteran",
-      label: "Veteran",
-      emoji: "🎖️",
-      desc: "Played 10+ matches",
-      earned: u.matchesPlayed >= 10,
-    },
-    {
-      key: "gold",
-      label: "Gold Blooded",
-      emoji: "🥇",
-      desc: "Reached 1200+ Elo",
-      earned: u.elo >= 1200,
-    },
-    {
-      key: "diamond",
-      label: "Diamond Hands",
-      emoji: "💎",
-      desc: "Reached 1400+ Elo",
-      earned: u.elo >= 1400,
-    },
-  ];
+export async function getAdminStats() {
+  const now = new Date();
+  const [users, activeUsers, upcoming, completed, lateCancels, allCancels] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { status: "ACTIVE" } }),
+    prisma.match.count({ where: { status: "UPCOMING", scheduledAt: { gt: now } } }),
+    prisma.match.count({ where: { status: "COMPLETED" } }),
+    prisma.participant.count({ where: { status: "OUT", outLate: true } }),
+    prisma.participant.count({ where: { status: "OUT" } }),
+  ]);
+  return { users, activeUsers, upcoming, completed, lateCancels, allCancels };
+}
+
+export async function getAdminCancellations() {
+  const parts = await prisma.participant.findMany({
+    where: { status: "OUT" },
+    orderBy: { joinedAt: "desc" },
+    take: 50,
+    include: { user: true, match: { select: { title: true, scheduledAt: true } } },
+  });
+  return parts.map((p) => ({
+    id: p.id,
+    username: p.user.displayName ?? p.user.username,
+    matchTitle: p.match.title,
+    reason: p.outReason,
+    late: p.outLate,
+  }));
 }

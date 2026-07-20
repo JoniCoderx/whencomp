@@ -1,126 +1,87 @@
-# When Comp 🎮
+# WHEN COMP 🎯
 
-**Squad up. Lock the time. Dominate.**
+לוח קומפים ל-Counter-Strike. קובעים קומפ, מאשרים הגעה, יודעים מי מגיע — הכל
+מהטלפון, מהיר ואמין. אפליקציית מובייל (PWA) בעברית מלאה עם תצוגת RTL.
 
-When Comp is a production-ready, mobile-first web app for scheduling competitive
-matches (CS2, Valorant, COD), filling lobbies, and tracking post-match stats —
-Elo, MVP awards, a Trophy Room, and a "Nemesis" system.
-
-Built to be **100% free to run — no paid APIs**. All "smart" content (lobby
-banter, post-match summaries) is generated from hand-written templates + pure
-logic. There are no OpenAI/Anthropic keys anywhere.
+> A Hebrew-first, mobile-first PWA for scheduling Counter-Strike 5-stacks:
+> see open comps, confirm attendance, manage a waitlist, chat per comp, and
+> track reliability. **No paid APIs.**
 
 ---
 
-## ✨ Features
+## ✨ פיצ׳רים
 
-| Area | What you get |
-| --- | --- |
-| **Match board** | Live grid of upcoming matches, per-game theming, one-tap **Join Comp** |
-| **Lobbies** | Auto-balanced Team A / Team B, player Elo, lobby banter |
-| **Scheduling** | Sleek create form (game / date / time / Discord link / max players) |
-| **Sharing** | Web Share API, WhatsApp deep links (`wa.me`), `.ics` calendar download |
-| **Post-match** | MVP voting + server-FPS rating → updates Elo, MVP count & matches played |
-| **Trophy Room** | Stat-based badges with a 3D pointer-tilt effect (Framer Motion) |
-| **Nemesis** | Pure-logic "most-faced opponent" across your completed matches |
-| **Gamer aesthetic** | Deep-black theme, neon accents, animated hero, subtle Web-Audio UI sounds |
-| **PWA** | Installable, offline app-shell service worker, fixed mobile bottom-nav, `overscroll-none` |
-| **i18n** | English + Hebrew with full **RTL** support and a live language toggle |
-| **Auth** | NextAuth credentials (register + login); Steam OAuth left as a placeholder |
+- **לוח קומפים** — כרטיסים עם תאריך, שעה (שעון ישראל), ספירה לאחור חיה,
+  מספר מקומות (X/5), נרשמים וסטטוס (פתוח / מלא / מתחיל בקרוב / הסתיים / בוטל).
+- **הרשמה חכמה** — עד 5 שחקנים לקומפ, **רשימת המתנה** אוטומטית, קידום
+  אוטומטי כשמתפנה מקום, מניעת הרשמה כפולה ומניעת חפיפה בין שני קומפים.
+- **ביטול עם סיבה** — עד שעה לפני הקומפ; פחות משעה מסומן כ"ביטול מאוחר".
+- **מדד אמינות** — לפי היסטוריית הגעה (הגיע / ביטל בזמן / ביטל מאוחר / לא הגיע).
+- **עמוד קומפ** — משתתפים, רשימת המתנה, ספירה לאחור, **צ׳אט בזמן אמת** עם
+  הודעות מערכת אוטומטיות (הצטרפות, ביטול, נשאר מקום אחד…).
+- **שיתוף** — כפתור WhatsApp עם טקסט מוכן שמתעדכן לבד, קובץ ICS ליומן
+  (אייפון / Google / Outlook) עם התראה שעה לפני, ו-Web Share.
+- **דיסקורד** — כפתור קבוע לשרת, וכפתור בקומפ רק אם היוצר הוסיף קישור.
+- **התראות** — מרכז התראות פנימי + בקשת הרשאת התראות מהמכשיר.
+- **פרופיל** — קומפים קרובים, היסטוריה, סטטיסטיקת הגעה, Steam/Discord,
+  עריכה ומחיקת חשבון.
+- **אחרי הקומפ** — שאלון קצר (דירוג, MVP, הערה) + סיכום.
+- **פאנל אדמין** — ניהול משתמשים (הרשאות, חסימה, השתקה, השעיה, מחיקה),
+  ניהול קומפים, צפייה בביטולים, הודעת מערכת לכולם, ו-Audit Log.
+- **PWA** — התקנה למסך הבית, Bottom Navigation, מצב offline בסיסי.
 
-## 🧱 Tech stack
+## 🧱 Stack
 
-- **Next.js 14** (App Router) + **TypeScript**
-- **Tailwind CSS** + `next-themes` (dark default)
-- **Framer Motion** for animations
-- **Prisma ORM** + **PostgreSQL** (`User`, `Match`, `Participant`, `Rating`) — free via [Neon](https://neon.tech)
-- **NextAuth** (Credentials provider)
-- No external paid services.
+Next.js 14 (App Router) · TypeScript · Tailwind CSS · Framer Motion ·
+Prisma + PostgreSQL (Neon) · NextAuth (Credentials). ללא שירותים בתשלום.
 
-## 🚀 Getting started
+## 🚀 התקנה מקומית
 
 ```bash
-# 1. Install
 npm install
-
-# 2. Configure env
-cp .env.example .env          # then edit NEXTAUTH_SECRET
-
-# 3. Create + seed the database
-npm run db:push
-npm run db:seed
-
-# 4. Run
+cp .env.example .env          # ערכו את DATABASE_URL ו-NEXTAUTH_SECRET
+npm run db:push               # יצירת הטבלאות
+npm run db:seed               # נתוני דמו (רק לפיתוח!)
 npm run dev                   # http://localhost:3000
 ```
 
-Seeded demo login: **`Neo` / `password123`**.
+**כניסת אדמין לדמו:** `Neo` / `password123`
+בפרודקשן, **המשתמש הראשון שנרשם הופך אוטומטית לאדמין** (אין seed בפרודקשן).
 
-## 🏗️ Production build
+## 🌍 משתני סביבה
 
-```bash
-npm run build   # runs `prisma generate` then `next build`
-npm run start
-```
+ראו [`.env.example`](./.env.example). הנדרשים:
 
-## ☁️ Deploy to Render (free)
+| Key | תיאור |
+| --- | --- |
+| `DATABASE_URL` | מחרוזת חיבור ל-Neon (Postgres). השתמשו ב-**direct** (לא pooled). |
+| `NEXTAUTH_SECRET` | מחרוזת אקראית ארוכה |
+| `NEXTAUTH_URL` | כתובת ה-deploy, למשל `https://whencomp.onrender.com` |
+| `NEXT_PUBLIC_DISCORD_URL` | (אופציונלי) קישור לשרת הדיסקורד שלכם |
 
-A [`render.yaml`](./render.yaml) blueprint is included. On Render:
+**אין מפתחות AI / OpenAI.**
 
-- **Build command:** `npm install --include=dev && npm run render-build`
-- **Start command:** `npm run start`
-- **Environment variables** (no paid/AI keys):
+## ☁️ Deploy (Render + Neon)
 
-  | Key | Value |
-  | --- | --- |
-  | `NODE_ENV` | `production` |
-  | `DATABASE_URL` | your **Neon** connection string (direct / non-pooled) |
-  | `NEXTAUTH_URL` | your live URL, e.g. `https://whencomp.onrender.com` |
-  | `NEXTAUTH_SECRET` | a long random string (Render can auto-generate) |
+- מסד נתונים חינמי ב-[Neon](https://neon.tech) (Postgres) — הנתונים נשמרים בין
+  deploys. הדביקו את מחרוזת החיבור ל-`DATABASE_URL`.
+- הפרויקט כולל [`Dockerfile`](./Dockerfile). ה-container מריץ `prisma db push`
+  באתחול (יוצר טבלאות, לא מוחק נתונים) ואז `next start`.
+- ה-seed **אינו** רץ אוטומטית — נתוני דמו רק לפיתוח.
 
-The database is **Neon (free Postgres)** so data persists across deploys.
-Create a project at [neon.tech](https://neon.tech), copy the **direct
-(non-pooled)** connection string, and paste it into `DATABASE_URL`.
+## 🔒 אבטחה ואיכות
 
-Two gotchas the config handles for you:
+ולידציה בצד לקוח ובצד שרת (zod) · עמודי אדמין מוגנים ברמת השרת ·
+Transaction בהצטרפות לקומפ (מונע Race על המקום החמישי) · Rate limiting
+(כניסה / צ׳אט / יצירה) · הודעות צ׳אט מוצגות כטקסט בלבד (הגנת XSS) ·
+תאריכים נשמרים ב-UTC ומוצגים לפי Asia/Jerusalem · מצבי Loading / Empty /
+Error / Success בכל עמוד.
 
-1. `--include=dev` is required because Render omits devDependencies when
-   `NODE_ENV=production`, but Next's build needs them.
-2. `render-build` runs `prisma db push` to create the tables on first deploy
-   (idempotent — it does **not** wipe existing data on later deploys).
-
-> To load demo data once, run `npm run db:seed` locally with `DATABASE_URL`
-> pointed at Neon. Make sure `NEXTAUTH_URL` exactly matches your live URL or
-> auth callbacks will fail.
-
-## 🌍 Environment variables
-
-See [`.env.example`](./.env.example). The only required values are
-`DATABASE_URL`, `NEXTAUTH_SECRET`, and `NEXTAUTH_URL`. **No AI/API keys.**
-
-## 📁 Project structure
+## 📁 מבנה
 
 ```
-prisma/
-  schema.prisma      # User / Match / Participant / Rating
-  seed.ts            # demo users + matches
-src/
-  app/               # App Router pages + API routes
-    api/matches/...  # REST endpoints (create, join/leave, results)
-  components/        # Navbar, BottomNav, Hero, MatchCard, LobbyView, ...
-  i18n/              # EN/HE dictionaries + provider (RTL)
-  lib/               # prisma, auth, elo, banter (templates), share, sound
-public/
-  manifest.json      # PWA manifest
-  sw.js              # offline service worker
-  icon.svg           # app icon (PNGs generated alongside)
+prisma/schema.prisma   User / Match / Participant / Message / Notification / AuditLog / Rating
+src/app/               עמודים ו-API routes (matches, join, cancel, messages, notifications, admin, profile)
+src/components/        Navbar, BottomNav, Hero, MatchCard, LobbyView, ChatBox, CompActions, AdminPanel, ...
+src/lib/               prisma, auth, admin, notify, ratelimit, reliability, share, format, sound
 ```
-
-## 🔊 Notes
-
-- **Sounds** use the Web Audio API (synthesized, no asset files) and can be muted
-  from the header. Browsers require a user gesture before audio plays.
-- **Nemesis / Trophies / banter / summaries** are all deterministic pure logic —
-  no external calls, so the app works fully offline once installed.
-- The legacy static site that previously lived at the repo root was moved to
-  [`legacy/`](./legacy/) and is untouched.

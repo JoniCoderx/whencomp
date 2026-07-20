@@ -2,30 +2,33 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: "class",
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        // Deep gamer blacks/grays
-        base: {
-          950: "#050507",
-          900: "#0a0a0a",
-          850: "#0f0f12",
-          800: "#141419",
-          700: "#1c1c24",
-          600: "#26262f",
-          500: "#33333f",
+        // Deep tactical charcoals
+        ink: {
+          950: "#08090b",
+          900: "#0b0d10",
+          850: "#0f1216",
+          800: "#14181e",
+          700: "#1c212a",
+          600: "#262c38",
+          500: "#333a48",
         },
-        // Vibrant neon accents
-        neon: {
-          blue: "#3b82f6",
-          electric: "#22d3ee",
-          purple: "#a855f7",
-          violet: "#8b5cf6",
-          pink: "#ec4899",
-          lime: "#a3e635",
+        // Primary brand accent — CS amber/gold
+        brand: {
+          300: "#fcd34d",
+          400: "#fbbf24",
+          500: "#f59e0b",
+          600: "#d97706",
+          700: "#b45309",
+        },
+        steel: {
+          300: "#cbd5e1",
+          400: "#94a3b8",
+          500: "#64748b",
+          600: "#475569",
         },
       },
       fontFamily: {
@@ -33,32 +36,27 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        "neon-blue": "0 0 20px rgba(59,130,246,0.45), 0 0 40px rgba(59,130,246,0.15)",
-        "neon-purple": "0 0 20px rgba(168,85,247,0.45), 0 0 40px rgba(168,85,247,0.15)",
-        "neon-cyan": "0 0 20px rgba(34,211,238,0.45), 0 0 40px rgba(34,211,238,0.15)",
-        "glow-soft": "0 8px 40px rgba(0,0,0,0.5)",
+        brand: "0 0 0 1px rgba(245,158,11,0.25), 0 8px 30px rgba(245,158,11,0.12)",
+        "glow-amber": "0 0 24px rgba(245,158,11,0.35)",
+        card: "0 10px 40px rgba(0,0,0,0.45)",
       },
       backgroundImage: {
-        "grid-glow":
-          "radial-gradient(circle at 20% 20%, rgba(59,130,246,0.12), transparent 40%), radial-gradient(circle at 80% 0%, rgba(168,85,247,0.12), transparent 40%)",
+        "brand-sheen":
+          "radial-gradient(circle at 15% 0%, rgba(245,158,11,0.10), transparent 45%), radial-gradient(circle at 85% 10%, rgba(56,189,248,0.06), transparent 45%)",
       },
       keyframes: {
-        "pulse-glow": {
-          "0%, 100%": { opacity: "0.6" },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "1" },
         },
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-6px)" },
-        },
-        shimmer: {
-          "100%": { transform: "translateX(100%)" },
+        rise: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
-        "pulse-glow": "pulse-glow 2.4s ease-in-out infinite",
-        float: "float 4s ease-in-out infinite",
-        shimmer: "shimmer 2s infinite",
+        "pulse-soft": "pulse-soft 2.2s ease-in-out infinite",
+        rise: "rise 0.5s ease-out both",
       },
     },
   },

@@ -1,8 +1,6 @@
 # Render blueprint for When Comp — free plan, no paid services.
 # Docs: https://render.com/docs/blueprint-spec
 #
-# This service builds from the included Dockerfile (Docker runtime).
-#
 # DATABASE: uses a free Neon (Postgres) database so data persists across
 # deploys. Create a project at https://neon.tech, copy the connection string,
 # and paste it into the DATABASE_URL env var in the Render dashboard.
@@ -11,19 +9,25 @@
 services:
   - type: web
     name: whencomp
-    runtime: docker
+    runtime: node
     plan: free
-    dockerfilePath: ./Dockerfile
+    # `render-build` installs the client, creates the SQLite tables, seeds demo
+    # data, then builds Next. Render omits devDeps when NODE_ENV=production, so
+    # we force them on for the build (Next needs TypeScript/Tailwind/Prisma CLI).
+    buildCommand: npm install --include=dev && npm run render-build
+    startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        # Paste your Neon DIRECT (non-pooled) connection string here, e.g.
+        # Paste your Neon connection string here (Settings -> Environment).
+        # Use the DIRECT / non-pooled string, e.g.
         # postgresql://USER:PASSWORD@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
         sync: false
       - key: NEXTAUTH_URL
-        # Your live Render URL, e.g. https://whencomp.onrender.com
-        # Auth callbacks break if it does not match exactly.
+        # Set this to your live URL after the first deploy (e.g.
+        # https://whencomp.onrender.com). Auth callbacks break if it mismatches.
         sync: false
       - key: NEXTAUTH_SECRET
+        # Render generates a strong random value automatically.
         generateValue: true

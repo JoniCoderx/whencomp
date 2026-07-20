@@ -19,10 +19,10 @@ export function computeEloDelta(opts: {
 }
 
 export function eloTier(elo: number): { name: string; color: string } {
-  if (elo >= 1600) return { name: "Radiant", color: "#f59e0b" };
-  if (elo >= 1400) return { name: "Diamond", color: "#22d3ee" };
-  if (elo >= 1200) return { name: "Platinum", color: "#a855f7" };
-  if (elo >= 1050) return { name: "Gold", color: "#eab308" };
-  if (elo >= 950) return { name: "Silver", color: "#94a3b8" };
-  return { name: "Bronze", color: "#b45309" };
+  if (elo >= 1600) return { name: "אגדה", color: "#f59e0b" };
+  if (elo >= 1400) return { name: "יהלום", color: "#22d3ee" };
+  if (elo >= 1200) return { name: "פלטינה", color: "#c4b5fd" };
+  if (elo >= 1050) return { name: "זהב", color: "#fbbf24" };
+  if (elo >= 950) return { name: "כסף", color: "#cbd5e1" };
+  return { name: "ארד", color: "#d97706" };
 }

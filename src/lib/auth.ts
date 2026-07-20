@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-const COLORS = ["#3b82f6", "#a855f7", "#22d3ee", "#ec4899", "#a3e635", "#f59e0b"];
+const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6"];
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -27,28 +27,34 @@ export const authOptions: NextAuthOptions = {
         let user = await prisma.user.findUnique({ where: { username } });
 
         if (isRegister) {
-          if (user) throw new Error("Username already taken");
+          if (user) throw new Error("שם המשתמש כבר תפוס");
           if (password.length < 4)
-            throw new Error("Password must be at least 4 characters");
+            throw new Error("הסיסמה חייבת להיות לפחות 4 תווים");
           const passwordHash = await bcrypt.hash(password, 10);
+          // Bootstrap: the very first user to register becomes ADMIN.
+          const userCount = await prisma.user.count();
           user = await prisma.user.create({
             data: {
               username,
               displayName: username,
               passwordHash,
+              role: userCount === 0 ? "ADMIN" : "USER",
               avatarColor: COLORS[Math.floor(Math.abs(hashCode(username)) % COLORS.length)],
             },
           });
         } else {
-          if (!user) throw new Error("No account found — try registering");
+          if (!user) throw new Error("לא נמצא חשבון — נסו להירשם");
           const ok = await bcrypt.compare(password, user.passwordHash);
-          if (!ok) throw new Error("Wrong password");
+          if (!ok) throw new Error("סיסמה שגויה");
         }
+
+        if (user.status === "BANNED") throw new Error("החשבון חסום");
 
         return {
           id: user.id,
           name: user.displayName ?? user.username,
           username: user.username,
+          role: user.role,
         } as any;
       },
     }),
@@ -60,6 +66,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = (user as any).id;
         token.username = (user as any).username;
+        token.role = (user as any).role;
       }
       return token;
     },
@@ -67,6 +74,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).username = token.username;
+        (session.user as any).role = token.role;
       }
       return session;
     },

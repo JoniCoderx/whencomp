@@ -1,5 +1,6 @@
-// When Comp — Prisma schema (SQLite)
-// Models: User, Match, Participant, Rating
+// When Comp — Prisma schema
+// Local dev = SQLite; production (Render/Neon) = PostgreSQL. Only `provider` differs.
+// Dates are stored in UTC and displayed as Asia/Jerusalem in the UI.
 
 generator client {
   provider = "prisma-client-js"
@@ -11,49 +12,60 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  username      String   @unique
-  passwordHash  String
-  displayName   String?
-  steamProfile  String? // Steam profile URL / id (placeholder for Steam OAuth)
-  avatarColor   String   @default("#3b82f6")
-  elo           Int      @default(1000)
-  mvpCount      Int      @default(0)
-  matchesPlayed Int      @default(0)
-  createdAt     DateTime @default(now())
+  id             String   @id @default(cuid())
+  username       String   @unique
+  passwordHash   String
+  displayName    String?
+  avatarColor    String   @default("#f59e0b")
+  role           String   @default("USER") // USER | ADMIN
+  status         String   @default("ACTIVE") // ACTIVE | BANNED
+  suspendedUntil DateTime?
+  chatBanned     Boolean  @default(false)
+  steamProfile   String?
+  discordName    String?
+  elo            Int      @default(1000)
+  mvpCount       Int      @default(0)
+  matchesPlayed  Int      @default(0)
+  createdAt      DateTime @default(now())
 
-  createdMatches Match[]       @relation("MatchCreator")
+  createdMatches Match[]        @relation("MatchCreator")
   participations Participant[]
-
-  // Ratings this user has cast and received
-  ratingsGiven    Rating[] @relation("RatingFrom")
-  ratingsReceived Rating[] @relation("RatingTo")
+  messages       Message[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]     @relation("AuditActor")
 }
 
 model Match {
   id          String   @id @default(cuid())
   title       String
-  game        String // CS2 | Valorant | COD | ...
-  scheduledAt DateTime
+  game        String   @default("CS2")
+  scheduledAt DateTime // UTC
+  durationMin Int      @default(90)
   status      String   @default("UPCOMING") // UPCOMING | LIVE | COMPLETED | CANCELLED
+  capacity    Int      @default(5)
   discordLink String?
-  maxPlayers  Int      @default(10)
   notes       String?
+  isPrivate   Boolean  @default(false)
+  inviteCode  String?  @unique
   createdAt   DateTime @default(now())
 
   creatorId String
   creator   User   @relation("MatchCreator", fields: [creatorId], references: [id], onDelete: Cascade)
 
   participants Participant[]
+  messages     Message[]
   ratings      Rating[]
 }
 
 model Participant {
-  id        String   @id @default(cuid())
-  team      String   @default("UNASSIGNED") // A | B | UNASSIGNED
-  joinedAt  DateTime @default(now())
-  mvpVoteId String? // participant/user id this player voted MVP for
-  fpsRating Int? // reported server FPS quality 1-5
+  id         String   @id @default(cuid())
+  status     String   @default("CONFIRMED") // CONFIRMED | WAITLIST | OUT
+  outReason  String?
+  outLate    Boolean  @default(false)
+  attendance String? // ARRIVED | NOSHOW (set after the comp)
+  joinedAt   DateTime @default(now())
+  mvpVoteId  String?
+  fpsRating  Int?
 
   userId  String
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -63,19 +75,49 @@ model Participant {
   @@unique([userId, matchId])
 }
 
+model Message {
+  id        String   @id @default(cuid())
+  body      String
+  kind      String   @default("USER") // USER | SYSTEM
+  createdAt DateTime @default(now())
+
+  matchId String
+  match   Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId  String?
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  kind      String // JOINED | FULL | SPOT_OPEN | STARTING | CHANGED | CANCELLED | CHAT
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId String?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  adminId String
+  admin   User   @relation("AuditActor", fields: [adminId], references: [id], onDelete: Cascade)
+}
+
 model Rating {
   id        String   @id @default(cuid())
-  kind      String // MVP | FPS | GENERAL
+  kind      String
   value     Int      @default(0)
   comment   String?
   createdAt DateTime @default(now())
 
-  matchId String
-  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
+  matchId    String
+  match      Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
   fromUserId String
-  fromUser   User   @relation("RatingFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-
-  toUserId String?
-  toUser   User?   @relation("RatingTo", fields: [toUserId], references: [id], onDelete: SetNull)
+  toUserId   String?
 }
