@@ -1,7 +1,7 @@
 # When Comp — Dockerfile (used by Render's Docker runtime).
 # Multi-stage: install + build, then a lean runtime image.
 
-FROM node:20-slim AS build
+FROM node:22-slim AS build
 WORKDIR /app
 # Prisma needs openssl on Debian slim.
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime image ----
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
