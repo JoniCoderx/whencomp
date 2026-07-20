@@ -3,9 +3,11 @@
 // keeps their Steam link + captain/admin flag in sync WITHOUT overwriting a
 // player's own later edits (display name / password stay theirs).
 
-import { PrismaClient } from "@prisma/client";
+// @prisma/client is CommonJS — use default import for reliable ESM interop on Node 20.
+import pkg from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
 // Default password for preset accounts (players should change it after login).

@@ -34,7 +34,7 @@ COPY --from=build /app/next.config.mjs ./next.config.mjs
 # Render injects PORT; Next's `start` respects it.
 EXPOSE 3000
 
-# On start: sync the (Neon) schema, then launch. --accept-data-loss lets the
-# schema evolve during pre-launch without the deploy getting stuck on a
-# column change; db push is otherwise additive and idempotent.
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node prisma/bootstrap.mjs && npm run start"]
+# Startup is resilient to Neon free-tier cold starts (57P01): db push is retried
+# a few times, the roster bootstrap is non-fatal, and `next start` ALWAYS runs
+# (`;` not `&&`) so a transient DB hiccup can never block the app from booting.
+CMD ["sh", "-c", "for i in 1 2 3 4 5; do npx prisma db push --skip-generate --accept-data-loss && break || (echo 'db push retry '$i'...'; sleep 4); done; node prisma/bootstrap.mjs || echo 'bootstrap skipped'; npm run start"]
