@@ -34,6 +34,7 @@ COPY --from=build /app/next.config.mjs ./next.config.mjs
 # Render injects PORT; Next's `start` respects it.
 EXPOSE 3000
 
-# On start: ensure the (Neon) schema exists, then launch.
-# `db push` is idempotent and won't drop existing data on later boots.
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run start"]
+# On start: sync the (Neon) schema, then launch. --accept-data-loss lets the
+# schema evolve during pre-launch without the deploy getting stuck on a
+# column change; db push is otherwise additive and idempotent.
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && npm run start"]
