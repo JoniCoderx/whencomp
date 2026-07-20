@@ -84,7 +84,7 @@ export const he: Record<string, string> = {
   "create.field.notes": "הערות (לא חובה)",
   "create.submit": "לפרסם קומפ",
   "create.launching": "מפרסם...",
-  "create.teamNote": "עד 5 שחקנים בכל קבוצה (10 בסך הכל).",
+  "create.teamNote": "עד 5 שחקנים בקומפ. מעבר לכך — רשימת המתנה.",
 
   "lobby.back": "חזרה לקומפים",
   "lobby.teamA": "קבוצה א׳",
