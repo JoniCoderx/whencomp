@@ -10,6 +10,7 @@ function partDTO(p: any): ParticipantDTO {
     username: p.user?.username ?? "שחקן",
     displayName: p.user?.displayName ?? null,
     avatarColor: p.user?.avatarColor ?? "#f59e0b",
+    avatarUrl: p.user?.avatarUrl ?? null,
     joinedAt: (p.joinedAt instanceof Date ? p.joinedAt : new Date(p.joinedAt ?? Date.now())).toISOString(),
   };
 }
@@ -47,6 +48,7 @@ export function toMessageDTO(m: any): MessageDTO {
     userId: m.userId ?? null,
     username: m.user?.displayName ?? m.user?.username ?? "מערכת",
     avatarColor: m.user?.avatarColor ?? "#64748b",
+    avatarUrl: m.user?.avatarUrl ?? null,
   };
 }
 

@@ -18,6 +18,7 @@ const patchSchema = z.object({
   status: z.enum(["ACTIVE", "BANNED"]).optional(),
   chatBanned: z.boolean().optional(),
   suspendDays: z.number().int().min(0).max(365).optional(),
+  avatarUrl: z.string().url().max(400).optional().or(z.literal("")),
 });
 
 export async function PATCH(req: Request) {
@@ -26,7 +27,7 @@ export async function PATCH(req: Request) {
 
   const parsed = patchSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });
-  const { userId, role, status, chatBanned, suspendDays } = parsed.data;
+  const { userId, role, status, chatBanned, suspendDays, avatarUrl } = parsed.data;
 
   if (userId === adminId && (role === "USER" || status === "BANNED"))
     return NextResponse.json({ error: "לא ניתן לשנות את ההרשאה של עצמך" }, { status: 400 });
@@ -35,6 +36,7 @@ export async function PATCH(req: Request) {
   if (role) data.role = role;
   if (status) data.status = status;
   if (typeof chatBanned === "boolean") data.chatBanned = chatBanned;
+  if (avatarUrl !== undefined) data.avatarUrl = avatarUrl || null;
   if (typeof suspendDays === "number")
     data.suspendedUntil = suspendDays > 0 ? new Date(Date.now() + suspendDays * 86400000) : null;
 

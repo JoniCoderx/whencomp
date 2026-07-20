@@ -17,6 +17,7 @@ model User {
   passwordHash   String
   displayName    String?
   avatarColor    String   @default("#f59e0b")
+  avatarUrl      String? // optional profile image URL (e.g. Steam avatar)
   role           String   @default("USER") // USER | ADMIN
   status         String   @default("ACTIVE") // ACTIVE | BANNED
   suspendedUntil DateTime?

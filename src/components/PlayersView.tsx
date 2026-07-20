@@ -14,6 +14,7 @@ interface Player {
   username: string;
   displayName: string | null;
   avatarColor: string;
+  avatarUrl: string | null;
   role: string;
   steamProfile: string | null;
   discordName: string | null;
@@ -79,7 +80,7 @@ export function PlayersView({ players: initial }: { players: Player[] }) {
               <div className="w-7 shrink-0 text-center font-display text-lg font-black">
                 {MEDALS[i] ?? <span className="text-slate-500">{i + 1}</span>}
               </div>
-              <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={46} ring={p.isCaptain} />
+              <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={46} ring={p.isCaptain} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="truncate font-display font-bold">{p.displayName ?? p.username}</p>

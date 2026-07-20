@@ -7,6 +7,7 @@ export interface ParticipantDTO {
   username: string;
   displayName: string | null;
   avatarColor: string;
+  avatarUrl: string | null;
   joinedAt: string;
 }
 
@@ -37,6 +38,7 @@ export interface MessageDTO {
   userId: string | null;
   username: string;
   avatarColor: string;
+  avatarUrl: string | null;
 }
 
 export interface NotificationDTO {
@@ -53,6 +55,7 @@ export interface ProfileDTO {
   username: string;
   displayName: string | null;
   avatarColor: string;
+  avatarUrl: string | null;
   role: string;
   steamProfile: string | null;
   discordName: string | null;

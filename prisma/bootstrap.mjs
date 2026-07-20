@@ -16,14 +16,16 @@ const DEFAULT_PASSWORD = process.env.ROSTER_PASSWORD || "cs2play";
 const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6", "#f472b6"];
 
 // Order matters — the first entry is the captain (pinned on top, admin).
+// `avatar` = direct image URL (e.g. the Steam avatar). Leave "" to fall back
+// to a coloured-initials avatar. Fill these in to show real profile pictures.
 const ROSTER = [
-  { username: "HackerMotherFucker", display: "Sharmuta #1",         steam: "https://steamcommunity.com/id/HackerMotherFucker", captain: true },
-  { username: "ChutmarikaIL",       display: "ChutMarika!",        steam: "https://steamcommunity.com/id/ChutmarikaIL" },
-  { username: "HextoN_O",           display: "HextoN",             steam: "https://steamcommunity.com/id/HextoN_O" },
-  { username: "Negroniko",          display: "Negroni",            steam: "https://steamcommunity.com/id/Negroniko" },
-  { username: "player_414396",      display: "Audi A1 2013 1.4T",  steam: "https://steamcommunity.com/profiles/76561198169414396" },
-  { username: "player_898544",      display: "Hassan Nasrallah",   steam: "https://steamcommunity.com/profiles/76561198830898544" },
-  { username: "player_502816",      display: "סמדי בומבה פרימום",   steam: "https://steamcommunity.com/profiles/76561198227502816" },
+  { username: "HackerMotherFucker", display: "Sharmuta #1",        steam: "https://steamcommunity.com/id/HackerMotherFucker", avatar: "", captain: true },
+  { username: "ChutmarikaIL",       display: "ChutMarika!",        steam: "https://steamcommunity.com/id/ChutmarikaIL",        avatar: "" },
+  { username: "HextoN_O",           display: "HextoN",             steam: "https://steamcommunity.com/id/HextoN_O",            avatar: "" },
+  { username: "Negroniko",          display: "Negroni",            steam: "https://steamcommunity.com/id/Negroniko",           avatar: "" },
+  { username: "player_414396",      display: "Audi A1 2013 1.4T",  steam: "https://steamcommunity.com/profiles/76561198169414396", avatar: "" },
+  { username: "player_898544",      display: "Hassan Nasrallah",   steam: "https://steamcommunity.com/profiles/76561198830898544", avatar: "" },
+  { username: "player_502816",      display: "סמדי בומבה פרימום",  steam: "https://steamcommunity.com/profiles/76561198227502816", avatar: "" },
 ];
 
 async function main() {
@@ -32,16 +34,19 @@ async function main() {
     const r = ROSTER[i];
     await prisma.user.upsert({
       where: { username: r.username },
-      // Keep the player's own edits; only ensure Steam link + captain role.
+      // Keep the player's own edits; ensure Steam link, captain role, and
+      // (when provided) the roster avatar.
       update: {
         steamProfile: r.steam,
         ...(r.captain ? { role: "ADMIN" } : {}),
+        ...(r.avatar ? { avatarUrl: r.avatar } : {}),
       },
       create: {
         username: r.username,
         displayName: r.display,
         passwordHash,
         steamProfile: r.steam,
+        avatarUrl: r.avatar || null,
         role: r.captain ? "ADMIN" : "USER",
         avatarColor: COLORS[i % COLORS.length],
         elo: 1000,

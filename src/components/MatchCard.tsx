@@ -58,7 +58,7 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
         <div className="flex -space-x-2 space-x-reverse">
           {match.confirmed.slice(0, 5).map((p) => (
             <div key={p.id} className="rounded-full ring-2 ring-ink-850">
-              <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={30} />
+              <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={30} />
             </div>
           ))}
           {spots === 0 && <span className="text-xs text-slate-500">אין עדיין נרשמים</span>}

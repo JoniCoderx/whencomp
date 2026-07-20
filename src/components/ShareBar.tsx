@@ -33,7 +33,16 @@ export function ShareBar({ match }: { match: MatchDTO }) {
       </a>
       <CalendarButton matchId={match.id} share={sm} />
       <button
-        onClick={async () => { sfx.click(); const ok = await nativeShare(sm); if (!ok) { await navigator.clipboard.writeText(url); flash(); } }}
+        onClick={async () => {
+          sfx.click();
+          const ok = await nativeShare(sm);
+          if (!ok) {
+            try {
+              await navigator.clipboard?.writeText(url);
+            } catch {}
+            flash();
+          }
+        }}
         className="btn-ghost text-sm no-tap"
       >
         <span>🔗</span> {copied ? t("lobby.copied") : t("lobby.share")}

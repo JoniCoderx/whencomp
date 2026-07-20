@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import { formatMatchTime, cn } from "@/lib/format";
@@ -20,6 +20,7 @@ export function AdminPanel() {
   const [q, setQ] = useState("");
   const [broadcast, setBroadcast] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const avatarInputs = useRef<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const [u, m, s, c] = await Promise.all([
@@ -104,7 +105,7 @@ export function AdminPanel() {
             <div key={u.id} className="card">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
-                  <Avatar name={u.displayName ?? u.username} color={u.avatarColor} size={38} />
+                  <Avatar name={u.displayName ?? u.username} color={u.avatarColor} src={u.avatarUrl} size={38} />
                   <div>
                     <p className="font-bold">{u.displayName ?? u.username} {u.role === "ADMIN" && "👑"}</p>
                     <p className="text-xs" style={{ color: u.reliability.color }}>{u.reliability.label} · {u.stats.arrived} הגיע · {u.stats.cancelledLate} מאוחר</p>
@@ -120,6 +121,20 @@ export function AdminPanel() {
                 <button onClick={() => patchUser(u.id, { chatBanned: !u.chatBanned })} className="btn-ghost !px-2.5 !py-1 text-xs no-tap">{u.chatBanned ? "ביטול השתקה" : "השתקת צ׳אט"}</button>
                 <button onClick={() => patchUser(u.id, { suspendDays: 7 })} className="btn-ghost !px-2.5 !py-1 text-xs no-tap">השעיה שבוע</button>
                 <button onClick={() => deleteUser(u.id, u.username)} className="btn-danger !px-2.5 !py-1 text-xs no-tap">{t("admin.delete")}</button>
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                <input
+                  defaultValue={u.avatarUrl ?? ""}
+                  placeholder="קישור לתמונת פרופיל (URL)"
+                  className="input !py-1.5 text-xs"
+                  onChange={(e) => (avatarInputs.current[u.id] = e.target.value)}
+                />
+                <button
+                  onClick={() => patchUser(u.id, { avatarUrl: avatarInputs.current[u.id] ?? u.avatarUrl ?? "" })}
+                  className="btn-ghost !px-2.5 !py-1 text-xs no-tap shrink-0"
+                >
+                  שמור תמונה
+                </button>
               </div>
             </div>
           ))}

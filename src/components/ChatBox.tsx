@@ -95,7 +95,7 @@ export function ChatBox({ matchId }: { matchId: string }) {
             <p key={m.id} className="text-center text-xs text-slate-500">— {m.body} —</p>
           ) : (
             <div key={m.id} className={cn("group flex items-start gap-2", m.userId === userId && "flex-row-reverse")}>
-              <Avatar name={m.username} color={m.avatarColor} size={30} />
+              <Avatar name={m.username} color={m.avatarColor} src={m.avatarUrl} size={30} />
               <div className={cn("max-w-[75%]", m.userId === userId && "text-left")}>
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-500" dir="rtl">
                   <span className="font-bold text-slate-300">{m.username}</span>

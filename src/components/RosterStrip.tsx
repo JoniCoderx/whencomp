@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { sfx } from "@/lib/sound";
 import { Avatar } from "./Avatar";
 
-interface P { id: string; username: string; displayName: string | null; avatarColor: string; isCaptain: boolean }
+interface P { id: string; username: string; displayName: string | null; avatarColor: string; avatarUrl: string | null; isCaptain: boolean }
 
 export function RosterStrip({ players }: { players: P[] }) {
   const { t } = useI18n();
@@ -26,7 +26,7 @@ export function RosterStrip({ players }: { players: P[] }) {
             onClick={() => sfx.soft()}
             className="flex w-16 shrink-0 flex-col items-center gap-1.5 no-tap"
           >
-            <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={52} ring={p.isCaptain} />
+            <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={52} ring={p.isCaptain} />
             <span className="w-full truncate text-center text-[11px] text-slate-400">{p.displayName ?? p.username}</span>
           </Link>
         ))}

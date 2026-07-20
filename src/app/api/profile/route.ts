@@ -11,6 +11,7 @@ const schema = z.object({
   steamProfile: z.string().trim().max(200).optional().or(z.literal("")),
   discordName: z.string().trim().max(60).optional().or(z.literal("")),
   avatarColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  avatarUrl: z.string().url().max(400).optional().or(z.literal("")),
 });
 
 export async function PATCH(req: Request) {
@@ -29,6 +30,7 @@ export async function PATCH(req: Request) {
       ...(d.steamProfile !== undefined ? { steamProfile: d.steamProfile || null } : {}),
       ...(d.discordName !== undefined ? { discordName: d.discordName || null } : {}),
       ...(d.avatarColor ? { avatarColor: d.avatarColor } : {}),
+      ...(d.avatarUrl !== undefined ? { avatarUrl: d.avatarUrl || null } : {}),
     },
   });
   return NextResponse.json({ ok: true });

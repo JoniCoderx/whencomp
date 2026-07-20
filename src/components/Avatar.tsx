@@ -5,17 +5,34 @@ export function Avatar({
   color = "#3b82f6",
   size = 40,
   ring = false,
+  src,
 }: {
   name: string;
   color?: string;
   size?: number;
   ring?: boolean;
+  src?: string | null;
 }) {
+  const ringCls = ring ? "ring-2 ring-white/20" : "";
+
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name}
+        width={size}
+        height={size}
+        title={name}
+        className={`shrink-0 rounded-full object-cover ${ringCls}`}
+        style={{ width: size, height: size, boxShadow: `0 0 ${size * 0.4}px ${color}55` }}
+      />
+    );
+  }
+
   return (
     <div
-      className={`flex items-center justify-center rounded-full font-bold text-white shrink-0 ${
-        ring ? "ring-2 ring-white/20" : ""
-      }`}
+      className={`flex items-center justify-center rounded-full font-bold text-white shrink-0 ${ringCls}`}
       style={{
         width: size,
         height: size,

@@ -72,7 +72,7 @@ export function PostMatchForm({ match }: { match: MatchDTO }) {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {match.confirmed.map((p) => (
                 <button key={p.id} onClick={() => { sfx.soft(); setMvp(p.userId); }} className={cn("flex items-center gap-2 rounded-xl border px-2.5 py-2 text-sm no-tap", mvp === p.userId ? "border-brand-500/60 bg-brand-500/15" : "border-white/10 bg-white/5")}>
-                  <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={22} />
+                  <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={22} />
                   <span className="truncate font-semibold">{p.displayName ?? p.username}</span>
                 </button>
               ))}

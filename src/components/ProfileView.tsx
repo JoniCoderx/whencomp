@@ -23,6 +23,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
   const [displayName, setDisplayName] = useState(user.displayName ?? user.username);
   const [steam, setSteam] = useState(user.steamProfile ?? "");
   const [discord, setDiscord] = useState(user.discordName ?? "");
+  const [avatar, setAvatar] = useState(user.avatarUrl ?? "");
   const [saving, setSaving] = useState(false);
 
   async function save() {
@@ -31,7 +32,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, steamProfile: steam, discordName: discord }),
+      body: JSON.stringify({ displayName, steamProfile: steam, discordName: discord, avatarUrl: avatar }),
     });
     setSaving(false);
     if (res.ok) { setEditing(false); router.refresh(); }
@@ -54,7 +55,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Avatar name={user.displayName ?? user.username} color={user.avatarColor} size={64} ring />
+          <Avatar name={user.displayName ?? user.username} color={user.avatarColor} src={user.avatarUrl} size={64} ring />
           <div>
             <h1 className="font-display text-2xl font-black">{user.displayName ?? user.username}</h1>
             <p className="text-sm text-slate-400">@{user.username}{user.role === "ADMIN" && " · 👑 מנהל"}</p>
@@ -69,6 +70,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
       {editing && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="card space-y-3">
           <div><label className="label">{t("profile.displayName")}</label><input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={40} /></div>
+          <div><label className="label">תמונת פרופיל (קישור)</label><input className="input" value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://... (קישור לתמונה)" /></div>
           <div><label className="label">{t("profile.steam")}</label><input className="input" value={steam} onChange={(e) => setSteam(e.target.value)} placeholder="https://steamcommunity.com/id/..." /></div>
           <div><label className="label">{t("profile.discord")}</label><input className="input" value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="username#0000" /></div>
           <div className="flex gap-2">

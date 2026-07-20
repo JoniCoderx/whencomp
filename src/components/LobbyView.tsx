@@ -73,7 +73,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
               {match.confirmed.map((p, i) => (
                 <div key={p.id} className="flex items-center gap-2.5 rounded-xl bg-white/[0.03] px-3 py-2">
                   <span className="w-4 text-xs text-slate-500">{i + 1}</span>
-                  <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={30} />
+                  <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={30} />
                   <span className="font-semibold">{p.displayName ?? p.username}</span>
                   {p.userId === match.creatorId && <span className="chip bg-brand-500/15 text-brand-300 text-[10px]">מארח</span>}
                 </div>
@@ -95,7 +95,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
                 {match.waitlist.map((p, i) => (
                   <div key={p.id} className="flex items-center gap-2.5 rounded-xl bg-white/[0.03] px-3 py-2">
                     <span className="w-4 text-xs text-slate-500">{i + 1}</span>
-                    <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={28} />
+                    <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={28} />
                     <span className="text-sm font-semibold text-slate-300">{p.displayName ?? p.username}</span>
                   </div>
                 ))}
@@ -109,7 +109,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
               <div className="space-y-2">
                 {match.cancelled.map((p) => (
                   <div key={p.id} className="flex items-center gap-2.5 text-sm text-slate-500">
-                    <Avatar name={p.displayName ?? p.username} color={p.avatarColor} size={24} />
+                    <Avatar name={p.displayName ?? p.username} color={p.avatarColor} src={p.avatarUrl} size={24} />
                     <span className="line-through">{p.displayName ?? p.username}</span>
                     {p.outLate && <span className="chip bg-red-500/10 text-red-300 text-[10px]">מאוחר</span>}
                     {p.outReason && <span className="truncate">— {p.outReason}</span>}
