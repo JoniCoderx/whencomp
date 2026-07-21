@@ -35,6 +35,18 @@ export function AuthForm() {
     router.refresh();
   }
 
+  async function guestEnter() {
+    setError(null);
+    setLoading(true);
+    sfx.click();
+    const res = await signIn("credentials", { guest: "true", guestName: username.trim(), redirect: false });
+    setLoading(false);
+    if (res?.error) { setError(res.error); return; }
+    sfx.success();
+    router.push("/matches");
+    router.refresh();
+  }
+
   return (
     <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="card mx-auto max-w-md">
       <div className="mb-6 flex justify-center"><Logo size={40} /></div>
@@ -59,6 +71,19 @@ export function AuthForm() {
           {loading ? "..." : mode === "login" ? t("auth.login.submit") : t("auth.register.submit")}
         </button>
       </form>
+
+      <div className="my-4 flex items-center gap-3 text-xs text-slate-600">
+        <span className="h-px flex-1 bg-white/10" />
+        או
+        <span className="h-px flex-1 bg-white/10" />
+      </div>
+      <button onClick={guestEnter} disabled={loading} className="btn-ghost w-full py-3 no-tap">
+        👤 כניסה כאורח
+      </button>
+      <p className="mt-2 text-center text-[11px] text-slate-500">
+        אפשר להיכנס בלי חשבון. אם תמלא שם למעלה — זה יהיה שם האורח שלך.
+      </p>
+
       <p className="mt-4 text-center text-xs text-slate-500">{t("auth.guestNote")}</p>
     </motion.div>
   );

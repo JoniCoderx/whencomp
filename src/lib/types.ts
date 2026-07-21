@@ -39,6 +39,7 @@ export interface MessageDTO {
   username: string;
   avatarColor: string;
   avatarUrl: string | null;
+  isGuest: boolean;
 }
 
 export interface NotificationDTO {

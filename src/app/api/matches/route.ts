@@ -17,6 +17,7 @@ const createSchema = z.object({
   discordLink: z.string().url("קישור לא תקין").optional().or(z.literal("")),
   notes: z.string().max(280).optional().or(z.literal("")),
   isPrivate: z.boolean().optional(),
+  allowGuests: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "יש להתחבר" }, { status: 401 });
+  if ((session?.user as any)?.isGuest)
+    return NextResponse.json({ error: "אורחים לא יכולים ליצור קומפ — הירשמו כדי ליצור" }, { status: 403 });
 
   if (!rateLimit(`create:${userId}`, 10, 60_000))
     return NextResponse.json({ error: "יותר מדי קומפים בזמן קצר, נסו שוב עוד רגע" }, { status: 429 });
@@ -55,6 +58,7 @@ export async function POST(req: Request) {
       discordLink: data.discordLink || null,
       notes: data.notes || null,
       isPrivate: !!data.isPrivate,
+      allowGuests: data.allowGuests !== false,
       inviteCode: data.isPrivate ? randomBytes(6).toString("hex") : null,
       capacity: 5,
       creatorId: userId,

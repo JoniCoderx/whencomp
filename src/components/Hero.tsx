@@ -34,10 +34,16 @@ export function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="font-display text-4xl font-black leading-tight md:text-6xl"
+          className="relative font-display text-4xl font-black leading-tight md:text-6xl"
         >
-          {t("hero.title1")}{" "}
-          <span className="text-brand-500 text-brand-glow">{t("hero.title2")}</span>
+          <span className="relative">
+            {t("hero.title1")}{" "}
+            <span className="text-brand-500 text-brand-glow">{t("hero.title2")}</span>
+            {/* Shine sweep overlay (decorative, transparent except the band) */}
+            <span aria-hidden className="wc-shine pointer-events-none absolute inset-0 text-transparent">
+              {t("hero.title1")} {t("hero.title2")}
+            </span>
+          </span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 12 }}
@@ -53,9 +59,17 @@ export function Hero() {
           transition={{ delay: 0.22 }}
           className="mt-8 flex flex-wrap items-center justify-center gap-3"
         >
-          <Link href="/matches" onClick={() => sfx.matchStart()} className="btn-primary px-6 py-3 text-base">
-            {t("hero.cta.primary")}
-          </Link>
+          <span className="relative">
+            {/* One-shot tactical flash when the CTA enters (decorative) */}
+            <span
+              aria-hidden
+              className="wc-flash pointer-events-none absolute -inset-3 rounded-full"
+              style={{ background: "radial-gradient(circle, rgba(251,191,36,0.55), transparent 60%)" }}
+            />
+            <Link href="/matches" onClick={() => sfx.matchStart()} className="btn-primary relative px-6 py-3 text-base">
+              {t("hero.cta.primary")}
+            </Link>
+          </span>
           <Link href="/create" onClick={() => sfx.click()} className="btn-ghost px-6 py-3 text-base">
             {t("hero.cta.secondary")}
           </Link>

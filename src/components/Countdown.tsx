@@ -1,31 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { countdownTo } from "@/lib/format";
+import { countdownTo, countdownTextHe } from "@/lib/format";
+import { useNow } from "@/lib/useNow";
 
 export function Countdown({
   to,
   compact = false,
+  text = false,
 }: {
   to: string;
   compact?: boolean;
+  text?: boolean;
 }) {
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useNow(); // shared 1s ticker, pauses on hidden tab
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  // Avoid hydration mismatch: render a neutral placeholder until mounted.
-  if (now === null) {
+  // Avoid hydration mismatch: neutral placeholder until mounted on the client.
+  if (!mounted) {
     return <span className="tabular-nums font-bold text-slate-500">··:··</span>;
   }
 
-  const c = countdownTo(to, now);
-  if (c.done) {
-    return <span className="font-bold text-emerald-400">התחיל 🎮</span>;
+  // Hebrew sentence form: "מתחיל בעוד 3 שעות ו־12 דקות"
+  if (text) {
+    const label = countdownTextHe(to, now);
+    const started = label === "הקומפ התחיל";
+    return <span className={started ? "font-bold text-emerald-400" : "font-bold text-brand-400"}>{label}</span>;
   }
+
+  const c = countdownTo(to, now);
+  if (c.done) return <span className="font-bold text-emerald-400">התחיל 🎮</span>;
 
   const unit = (v: number, l: string) => (
     <span className="inline-flex flex-col items-center">
@@ -36,7 +41,10 @@ export function Countdown({
   const sep = <span className="px-1 text-slate-600">:</span>;
 
   if (compact) {
-    const parts = c.days > 0 ? `${c.days}י ${c.hours}ש׳` : `${String(c.hours).padStart(2, "0")}:${String(c.minutes).padStart(2, "0")}:${String(c.seconds).padStart(2, "0")}`;
+    const parts =
+      c.days > 0
+        ? `${c.days}י ${c.hours}ש׳`
+        : `${String(c.hours).padStart(2, "0")}:${String(c.minutes).padStart(2, "0")}:${String(c.seconds).padStart(2, "0")}`;
     return <span className="tabular-nums font-bold text-brand-400">{parts}</span>;
   }
 

@@ -95,4 +95,46 @@
   .hide-scroll::-webkit-scrollbar {
     display: none;
   }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ---- Logo float (transform/opacity only, GPU-friendly) ---- */
+@keyframes wc-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.wc-logo-float {
+  animation: wc-float 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ---- Header shine sweep on the hero heading ---- */
+@keyframes wc-shine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.wc-shine {
+  background-image: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: wc-shine 6s linear infinite;
+}
+
+/* ---- One-shot tactical flash for the primary CTA ---- */
+@keyframes wc-flash {
+  0% { opacity: 0; transform: scale(0.6); }
+  12% { opacity: 0.85; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+.wc-flash {
+  animation: wc-flash 0.5s ease-out 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-logo-float,
+  .wc-shine,
+  .wc-flash { animation: none !important; }
 }

@@ -29,6 +29,7 @@ export function CreateForm() {
   const [notes, setNotes] = useState("");
   const [discord, setDiscord] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [allowGuests, setAllowGuests] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ id: string } | null>(null);
@@ -54,7 +55,7 @@ export function CreateForm() {
       const res = await fetch("/api/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), game: "CS2", scheduledAt: scheduledAt.toISOString(), notes, discordLink: discord, isPrivate }),
+        body: JSON.stringify({ title: title.trim(), game: "CS2", scheduledAt: scheduledAt.toISOString(), notes, discordLink: discord, isPrivate, allowGuests }),
       });
       const data = await res.json();
       if (!res.ok) { setError(typeof data.error === "string" ? data.error : "שגיאה ביצירה"); setStep("form"); return; }
@@ -146,6 +147,12 @@ export function CreateForm() {
         <span className="text-sm font-bold">קומפ פרטי (בהזמנה בלבד)</span>
         <span className={cn("h-6 w-11 rounded-full p-0.5 transition", isPrivate ? "bg-brand-500" : "bg-white/15")}>
           <span className={cn("block h-5 w-5 rounded-full bg-white transition", isPrivate ? "-translate-x-5" : "")} />
+        </span>
+      </button>
+      <button type="button" onClick={() => { sfx.soft(); setAllowGuests((v) => !v); }} className={cn("flex w-full items-center justify-between rounded-xl border px-4 py-3 no-tap", allowGuests ? "border-brand-500/50 bg-brand-500/10" : "border-white/10 bg-white/5")}>
+        <span className="text-sm font-bold">אפשר כניסת אורחים</span>
+        <span className={cn("h-6 w-11 rounded-full p-0.5 transition", allowGuests ? "bg-brand-500" : "bg-white/15")}>
+          <span className={cn("block h-5 w-5 rounded-full bg-white transition", allowGuests ? "-translate-x-5" : "")} />
         </span>
       </button>
       {error && <p className="text-sm text-red-400">{error}</p>}

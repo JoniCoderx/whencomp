@@ -72,3 +72,36 @@ export function countdownTo(date: string | Date, now = Date.now()): Countdown {
     total,
   };
 }
+
+const heDays = (n: number) => (n === 1 ? "יום" : `${n} ימים`);
+const heHours = (n: number) => (n === 1 ? "שעה" : `${n} שעות`);
+const heMins = (n: number) => (n === 1 ? "דקה" : `${n} דקות`);
+
+// Hebrew countdown text per spec: "מתחיל בעוד 3 שעות ו־12 דקות" etc.
+export function countdownTextHe(date: string | Date, now = Date.now()): string {
+  const c = countdownTo(date, now);
+  if (c.done) return "הקומפ התחיל";
+  if (c.days >= 1) return `מתחיל בעוד ${heDays(c.days)}`;
+  if (c.hours >= 1)
+    return `מתחיל בעוד ${heHours(c.hours)}${c.minutes ? ` ו־${heMins(c.minutes)}` : ""}`;
+  if (c.minutes >= 1) return `מתחיל בעוד ${heMins(c.minutes)}`;
+  return "מתחיל בעוד פחות מדקה";
+}
+
+export type MatchPhase = "upcoming" | "soon" | "live" | "ended";
+
+// One consistent phase machine driven off UTC timestamps.
+export function matchPhase(
+  startIso: string | Date,
+  durationMin = 90,
+  now = Date.now(),
+  status?: string
+): MatchPhase {
+  if (status === "COMPLETED") return "ended";
+  const start = new Date(startIso).getTime();
+  const end = start + durationMin * 60000;
+  if (now >= end) return "ended";
+  if (now >= start) return "live";
+  if (start - now <= 60 * 60 * 1000) return "soon";
+  return "upcoming";
+}

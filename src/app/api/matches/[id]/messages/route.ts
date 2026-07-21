@@ -44,8 +44,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "הודעה ריקה" }, { status: 400 });
 
-  const match = await prisma.match.findUnique({ where: { id: params.id }, select: { id: true, title: true } });
+  const match = await prisma.match.findUnique({ where: { id: params.id }, select: { id: true, title: true, allowGuests: true } });
   if (!match) return NextResponse.json({ error: "הקומפ לא נמצא" }, { status: 404 });
+  if (me.isGuest && match.allowGuests === false)
+    return NextResponse.json({ error: "הצ׳אט סגור לאורחים בקומפ הזה" }, { status: 403 });
 
   // Body stored raw; it is always rendered as text (React escapes) — never HTML.
   const msg = await prisma.message.create({

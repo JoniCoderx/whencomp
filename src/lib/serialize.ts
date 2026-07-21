@@ -49,6 +49,7 @@ export function toMessageDTO(m: any): MessageDTO {
     username: m.user?.displayName ?? m.user?.username ?? "מערכת",
     avatarColor: m.user?.avatarColor ?? "#64748b",
     avatarUrl: m.user?.avatarUrl ?? null,
+    isGuest: !!m.user?.isGuest,
   };
 }
 

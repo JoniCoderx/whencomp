@@ -20,6 +20,7 @@ model User {
   avatarUrl      String? // optional profile image URL (e.g. Steam avatar)
   role           String   @default("USER") // USER | ADMIN
   status         String   @default("ACTIVE") // ACTIVE | BANNED
+  isGuest        Boolean  @default(false)
   suspendedUntil DateTime?
   chatBanned     Boolean  @default(false)
   steamProfile   String?
@@ -62,6 +63,7 @@ model Match {
   discordLink String?
   notes       String?
   isPrivate   Boolean  @default(false)
+  allowGuests Boolean  @default(true)
   inviteCode  String?  @unique
   createdAt   DateTime @default(now())
 

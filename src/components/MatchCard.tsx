@@ -49,9 +49,8 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
         <StatusBadge match={match} />
       </div>
 
-      <div className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3 py-2">
-        <span className="text-xs text-slate-400">{t("board.starts")}</span>
-        <Countdown to={match.scheduledAt} compact />
+      <div className="flex items-center justify-center rounded-xl bg-white/[0.03] px-3 py-2 text-sm">
+        <Countdown to={match.scheduledAt} text />
       </div>
 
       <div className="flex items-center justify-between">

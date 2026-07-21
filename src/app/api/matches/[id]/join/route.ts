@@ -22,6 +22,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   if (!match) return NextResponse.json({ error: "הקומפ לא נמצא" }, { status: 404 });
   if (match.status === "CANCELLED" || match.status === "COMPLETED")
     return NextResponse.json({ error: "הקומפ כבר לא פעיל" }, { status: 409 });
+  if (me.isGuest && (match as any).allowGuests === false)
+    return NextResponse.json({ error: "הקומפ סגור לאורחים — הירשמו כדי להצטרף" }, { status: 403 });
 
   // Prevent double-booking at the same time (skip this match itself).
   const others = await prisma.participant.findMany({
