@@ -25,7 +25,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
         ← {t("lobby.back")}
       </Link>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("card", match.game === "CS2" && "cs2-tactical")}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/5">

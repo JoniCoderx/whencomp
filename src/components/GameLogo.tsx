@@ -60,6 +60,17 @@ export function GameLogo({
     );
   }
 
+  if (meta.key === ("Fortnite" as GameKey)) {
+    // Shield / drop marker.
+    return (
+      <svg {...common} aria-label="Fortnite">
+        <path d="M24 4l15 5v11c0 10-7 16-15 20-8-4-15-10-15-20V9l15-5z" fill={c} opacity="0.14" />
+        <path d="M24 4l15 5v11c0 10-7 16-15 20-8-4-15-10-15-20V9l15-5z" stroke={c} strokeWidth="2.4" strokeLinejoin="round" />
+        <path d="M17 20h14M17 20v10M17 25h9" stroke={c} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
   // COD — reticle with wings.
   return (
     <svg {...common} aria-label="Call of Duty">

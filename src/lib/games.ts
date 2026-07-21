@@ -1,4 +1,4 @@
-export type GameKey = "CS2" | "Valorant" | "COD";
+export type GameKey = "CS2" | "Valorant" | "COD" | "Fortnite";
 
 export interface GameMeta {
   key: GameKey;
@@ -29,6 +29,13 @@ export const GAMES: Record<GameKey, GameMeta> = {
     full: "Call of Duty",
     accent: "#84cc16",
     emoji: "💥",
+  },
+  Fortnite: {
+    key: "Fortnite",
+    label: "Fortnite",
+    full: "Fortnite",
+    accent: "#8b5cf6",
+    emoji: "🛡️",
   },
 };
 

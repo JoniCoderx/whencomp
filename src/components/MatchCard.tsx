@@ -32,7 +32,7 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.35) }}
-      className="card flex flex-col gap-4"
+      className={cn("card flex flex-col gap-4", match.game === "CS2" && "cs2-tactical")}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">

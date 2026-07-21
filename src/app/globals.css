@@ -110,6 +110,44 @@
   will-change: transform;
 }
 
+/* ---- CS2 tactical treatment (CSS only — no photo, always readable) ---- */
+.cs2-tactical {
+  position: relative;
+  overflow: hidden;
+}
+.cs2-tactical::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* charcoal base + muted orange glow from the corner */
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(245, 158, 11, 0.14), transparent 55%),
+    radial-gradient(100% 80% at 0% 100%, rgba(24, 27, 34, 0.9), transparent 60%),
+    linear-gradient(180deg, rgba(11, 13, 16, 0.2), rgba(11, 13, 16, 0.72));
+}
+.cs2-tactical::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  /* faint tactical scanlines + crosshair grid */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(245, 158, 11, 0.05) 0 1px, transparent 1px 5px),
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 100% 5px, 26px 26px, 26px 26px;
+  -webkit-mask-image: radial-gradient(120% 100% at 100% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(120% 100% at 100% 0%, #000 0%, transparent 70%);
+}
+.cs2-tactical > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* ---- Header shine sweep on the hero heading ---- */
 @keyframes wc-shine {
   0% { background-position: 200% 0; }
