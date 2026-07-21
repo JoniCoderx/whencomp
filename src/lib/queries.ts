@@ -55,12 +55,18 @@ export async function getMatch(id: string, viewerId?: string, inviteCode?: strin
 }
 
 export async function getMatchByInvite(code: string): Promise<MatchDTO | null> {
-  const m = await prisma.match.findUnique({ where: { inviteCode: code }, include: matchInclude });
-  return m ? toMatchDTO(m) : null;
+  return safe(async () => {
+    const m = await prisma.match.findUnique({ where: { inviteCode: code }, include: matchInclude });
+    return m ? toMatchDTO(m) : null;
+  }, null);
 }
 
 // Full profile bundle: user, upcoming, history, attendance + reliability.
 export async function getProfileBundle(userId: string) {
+  return safe(() => profileBundleInner(userId), null);
+}
+
+async function profileBundleInner(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
