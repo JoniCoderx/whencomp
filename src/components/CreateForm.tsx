@@ -50,7 +50,7 @@ export function CreateForm() {
   async function publish() {
     setLoading(true);
     setError(null);
-    sfx.matchStart();
+    sfx.schedule();
     try {
       const res = await fetch("/api/matches", {
         method: "POST",

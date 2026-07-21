@@ -37,4 +37,8 @@ EXPOSE 3000
 # Startup is resilient to Neon free-tier cold starts (57P01): db push is retried
 # a few times, the roster bootstrap is non-fatal, and `next start` ALWAYS runs
 # (`;` not `&&`) so a transient DB hiccup can never block the app from booting.
-CMD ["sh", "-c", "for i in 1 2 3 4 5; do npx prisma db push --skip-generate --accept-data-loss && break || (echo 'db push retry '$i'...'; sleep 4); done; node prisma/bootstrap.mjs || echo 'bootstrap skipped'; npm run start"]
+# The schema MUST be migrated before serving — otherwise the app queries columns
+# that don't exist yet and every page white-screens. Retry db push for Neon
+# cold-starts, but if it ultimately fails, ABORT the boot (exit 1) so Render
+# marks the deploy failed and retries, rather than serving a broken app.
+CMD ["sh", "-c", "ok=0; for i in 1 2 3 4 5 6 7 8; do npx prisma db push --skip-generate --accept-data-loss && { ok=1; break; } || { echo \"db push retry $i...\"; sleep 5; }; done; [ \"$ok\" = 1 ] || { echo 'FATAL: DB migration failed after retries'; exit 1; }; node prisma/bootstrap.mjs || echo 'bootstrap skipped'; npm run start"]

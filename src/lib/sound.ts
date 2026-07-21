@@ -45,8 +45,28 @@ function tone(freq: number, duration = 0.08, type: OscillatorType = "sine", gain
   osc.stop(ac.currentTime + duration + 0.02);
 }
 
+// Play a bundled audio file (e.g. the logo / schedule sound). Reuses one
+// element per src and respects the mute preference. Requires a user gesture.
+const audioCache: Record<string, HTMLAudioElement> = {};
+function playFile(src: string, volume = 0.5) {
+  if (typeof window === "undefined" || !soundEnabled()) return;
+  try {
+    let a = audioCache[src];
+    if (!a) {
+      a = new Audio(src);
+      a.preload = "auto";
+      audioCache[src] = a;
+    }
+    a.volume = volume;
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  } catch {}
+}
+
 export const sfx = {
   click: () => tone(520, 0.05, "triangle", 0.03),
+  logo: () => playFile("/sounds/schedule.mp3", 0.55),
+  schedule: () => playFile("/sounds/schedule.mp3", 0.6),
   soft: () => tone(320, 0.06, "sine", 0.025),
   success: () => {
     tone(523, 0.09, "sine", 0.04);

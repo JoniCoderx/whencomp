@@ -28,7 +28,7 @@ export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 hidden md:block">
       <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-2xl glass px-4 py-2.5">
-        <Link href="/" onClick={() => sfx.soft()}>
+        <Link href="/" onClick={() => sfx.logo()}>
           <Logo size={34} />
         </Link>
 

@@ -3,30 +3,47 @@ import { matchInclude, toMatchDTO } from "@/lib/serialize";
 import type { MatchDTO } from "@/lib/types";
 import { attendanceFromParticipations, computeReliability } from "@/lib/reliability";
 
+// Run a read; on failure (DB hiccup / cold start) return a safe fallback so the
+// page renders an empty state instead of white-screening.
+async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error("query failed, using fallback:", (e as Error)?.message);
+    return fallback;
+  }
+}
+
 export async function getUpcomingMatches(limit?: number): Promise<MatchDTO[]> {
-  const matches = await prisma.match.findMany({
-    where: { status: { in: ["UPCOMING", "LIVE"] }, isPrivate: false },
-    orderBy: { scheduledAt: "asc" },
-    take: limit,
-    include: matchInclude,
-  });
-  return matches.map((m) => toMatchDTO(m));
+  return safe(async () => {
+    const matches = await prisma.match.findMany({
+      where: { status: { in: ["UPCOMING", "LIVE"] }, isPrivate: false },
+      orderBy: { scheduledAt: "asc" },
+      take: limit,
+      include: matchInclude,
+    });
+    return matches.map((m) => toMatchDTO(m));
+  }, []);
 }
 
 export async function getAllPublicMatches(): Promise<MatchDTO[]> {
-  const matches = await prisma.match.findMany({
-    where: { isPrivate: false },
-    orderBy: { scheduledAt: "asc" },
-    include: matchInclude,
-  });
-  return matches.map((m) => toMatchDTO(m));
+  return safe(async () => {
+    const matches = await prisma.match.findMany({
+      where: { isPrivate: false },
+      orderBy: { scheduledAt: "asc" },
+      include: matchInclude,
+    });
+    return matches.map((m) => toMatchDTO(m));
+  }, []);
 }
 
 export async function getMatch(id: string, viewerId?: string): Promise<MatchDTO | null> {
-  const m = await prisma.match.findUnique({ where: { id }, include: matchInclude });
-  if (!m) return null;
-  const isCreator = viewerId && m.creatorId === viewerId;
-  return toMatchDTO(m, !!isCreator);
+  return safe(async () => {
+    const m = await prisma.match.findUnique({ where: { id }, include: matchInclude });
+    if (!m) return null;
+    const isCreator = viewerId && m.creatorId === viewerId;
+    return toMatchDTO(m, !!isCreator);
+  }, null);
 }
 
 export async function getMatchByInvite(code: string): Promise<MatchDTO | null> {
@@ -84,6 +101,10 @@ export async function getProfileBundle(userId: string) {
 // Team roster ranked by community votes ("top scores"). viewerId marks which
 // players the current user has already voted for.
 export async function getRoster(viewerId?: string) {
+  return safe(() => rosterInner(viewerId), [] as any[]);
+}
+
+async function rosterInner(viewerId?: string) {
   const { CAPTAIN_USERNAME } = await import("@/lib/config");
   const users = await prisma.user.findMany({ where: { status: "ACTIVE" } });
 
