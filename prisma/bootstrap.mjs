@@ -7,12 +7,19 @@
 // @prisma/client is CommonJS — use default import for reliable ESM interop on Node 20.
 import pkg from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
-// Default password for preset accounts (players should change it after login).
-const DEFAULT_PASSWORD = process.env.ROSTER_PASSWORD || "cs2play";
+// Roster login password. Prefer a private ROSTER_PASSWORD env var. If it's set,
+// every roster account's password is (re)set to it on boot — this rotates away
+// from any previously-shipped default so a public password can't grant admin.
+// If it's NOT set, new accounts get a RANDOM password (no known default), and
+// existing accounts are left untouched.
+const ENV_PASSWORD = (process.env.ROSTER_PASSWORD || "").trim();
+const hasEnvPassword = ENV_PASSWORD.length >= 6;
+const PASSWORD_PLAIN = hasEnvPassword ? ENV_PASSWORD : randomBytes(12).toString("base64url");
 
 const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6", "#f472b6"];
 
@@ -30,16 +37,25 @@ const ROSTER = [
 ];
 
 async function main() {
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+  const passwordHash = await bcrypt.hash(PASSWORD_PLAIN, 10);
+  if (!hasEnvPassword) {
+    console.warn(
+      "⚠️  ROSTER_PASSWORD is not set. New roster accounts get a random password " +
+      "and existing ones keep theirs. Set ROSTER_PASSWORD in your environment to " +
+      "control the roster login and rotate away from any old/default password."
+    );
+  }
   for (let i = 0; i < ROSTER.length; i++) {
     const r = ROSTER[i];
     await prisma.user.upsert({
       where: { username: r.username },
       // Enforce the canonical roster name + Steam link + captain role, and
-      // (when provided) the roster avatar — on existing accounts too.
+      // (when provided) the roster avatar — on existing accounts too. Only
+      // rotate the password when an explicit ROSTER_PASSWORD is configured.
       update: {
         displayName: r.display,
         steamProfile: r.steam,
+        ...(hasEnvPassword ? { passwordHash } : {}),
         ...(r.captain ? { role: "ADMIN" } : {}),
         ...(r.avatar ? { avatarUrl: r.avatar } : {}),
       },
@@ -55,7 +71,7 @@ async function main() {
       },
     });
   }
-  console.log(`✅ Roster bootstrap: ${ROSTER.length} players ensured (captain: ${ROSTER[0].username}).`);
+  console.log(`✅ Roster bootstrap: ${ROSTER.length} players ensured (captain: ${ROSTER[0].username}). Password source: ${hasEnvPassword ? "ROSTER_PASSWORD" : "random"}.`);
 }
 
 main()

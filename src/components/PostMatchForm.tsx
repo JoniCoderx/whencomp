@@ -23,6 +23,7 @@ export function PostMatchForm({ match }: { match: MatchDTO }) {
   const [note, setNote] = useState("");
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const mvpName = match.confirmed.find((p) => p.userId === mvp)?.displayName ??
     match.confirmed.find((p) => p.userId === mvp)?.username ?? null;
@@ -30,6 +31,7 @@ export function PostMatchForm({ match }: { match: MatchDTO }) {
 
   async function submit() {
     setLoading(true);
+    setError(null);
     sfx.success();
     try {
       const res = await fetch(`/api/matches/${match.id}/results`, {
@@ -37,7 +39,11 @@ export function PostMatchForm({ match }: { match: MatchDTO }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating: rating || undefined, mvpVoteId: mvp ?? undefined, note, happened: true }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) { setDone(true); router.refresh(); }
+      else setError(data.error ?? "השליחה נכשלה — נסו שוב");
+    } catch {
+      setError("שגיאת רשת — נסו שוב");
     } finally {
       setLoading(false);
     }
@@ -79,6 +85,7 @@ export function PostMatchForm({ match }: { match: MatchDTO }) {
             </div>
           </div>
           <textarea className="input min-h-[60px] resize-none" placeholder="הערה (לא חובה)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={280} />
+          {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-300">{error}</p>}
           <button onClick={submit} disabled={loading || (!rating && !mvp)} className="btn-primary w-full py-3 no-tap disabled:opacity-50">
             {loading ? "..." : t("post.submit")}
           </button>

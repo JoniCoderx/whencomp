@@ -24,7 +24,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
   return (
     <div className="space-y-6">
       <Link href="/matches" onClick={() => sfx.soft()} className="text-sm text-slate-400 hover:text-white no-tap">
-        ← {t("lobby.back")}
+        {t("lobby.back")} →
       </Link>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("card overflow-hidden", match.game === "CS2" && "cs2-tactical")}>

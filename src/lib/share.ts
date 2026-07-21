@@ -11,6 +11,7 @@ export interface ShareMatch {
   confirmed: number;
   capacity: number;
   discordLink?: string | null;
+  durationMin?: number;
 }
 
 export function buildShareText(m: ShareMatch): string {
@@ -24,7 +25,7 @@ export function buildShareText(m: ShareMatch): string {
 
 export function buildIcs(m: ShareMatch): string {
   const start = new Date(m.scheduledAt);
-  const end = new Date(start.getTime() + 90 * 60 * 1000);
+  const end = new Date(start.getTime() + (m.durationMin ?? 90) * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const uid = `${fmt(start)}-${Math.abs(hash(m.title))}@whencomp`;
   const desc = [`קומפ WHEN COMP`, m.discordLink ? `דיסקורד: ${m.discordLink}` : "", `פרטים: ${m.url}`]
@@ -59,7 +60,7 @@ export function buildIcs(m: ShareMatch): string {
 // Google Calendar "create event" template URL (works on web + Android + iOS).
 export function googleCalendarUrl(m: ShareMatch): string {
   const start = new Date(m.scheduledAt);
-  const end = new Date(start.getTime() + 90 * 60 * 1000);
+  const end = new Date(start.getTime() + (m.durationMin ?? 90) * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const details = [`קומפ WHEN COMP`, m.discordLink ? `דיסקורד: ${m.discordLink}` : "", m.url].filter(Boolean).join("\n");
   const params = new URLSearchParams({
@@ -83,17 +84,21 @@ export function downloadIcs(m: ShareMatch) {
   URL.revokeObjectURL(url);
 }
 
-export async function nativeShare(m: ShareMatch): Promise<boolean> {
+export type ShareResult = "shared" | "cancelled" | "unsupported";
+
+export async function nativeShare(m: ShareMatch): Promise<ShareResult> {
   const text = buildShareText(m);
   if (typeof navigator !== "undefined" && (navigator as any).share) {
     try {
       await (navigator as any).share({ title: m.title, text, url: m.url });
-      return true;
-    } catch {
-      return false;
+      return "shared";
+    } catch (e: any) {
+      // User dismissed the share sheet — don't fall back to clipboard.
+      if (e?.name === "AbortError") return "cancelled";
+      return "unsupported";
     }
   }
-  return false;
+  return "unsupported";
 }
 
 function escapeIcs(s: string) {

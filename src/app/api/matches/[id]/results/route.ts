@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeEloDelta } from "@/lib/elo";
+import { rateLimit } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "יש להתחבר" }, { status: 401 });
 
+  if (!rateLimit(`results:${userId}`, 10, 30_000))
+    return NextResponse.json({ error: "לאט יותר 🙂" }, { status: 429 });
+
   const parsed = schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });
   const { rating, mvpVoteId, note, happened } = parsed.data;
@@ -33,33 +37,55 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
   if (!me) return NextResponse.json({ error: "לא השתתפת בקומפ הזה" }, { status: 403 });
 
-  await prisma.participant.update({
-    where: { id: me.id },
-    data: { mvpVoteId: mvpVoteId ?? me.mvpVoteId, fpsRating: rating ?? me.fpsRating },
-  });
-  if (rating) {
-    await prisma.rating.create({
-      data: { kind: "MATCH", value: rating, matchId: match.id, fromUserId: userId, comment: note || null, toUserId: mvpVoteId ?? null },
-    });
-  }
-
   const confirmed = await prisma.participant.findMany({
     where: { matchId: match.id, status: "CONFIRMED" },
   });
-  const voted = confirmed.filter((p) => p.mvpVoteId || p.fpsRating).length;
-  const threshold = Math.max(1, Math.ceil(confirmed.length / 2));
+  const confirmedIds = new Set(confirmed.map((p) => p.userId));
+  // Only accept an MVP vote for an actual confirmed player of THIS match.
+  const validMvp = mvpVoteId && confirmedIds.has(mvpVoteId) ? mvpVoteId : undefined;
+
+  await prisma.participant.update({
+    where: { id: me.id },
+    data: { mvpVoteId: validMvp ?? me.mvpVoteId, fpsRating: rating ?? me.fpsRating },
+  });
+  if (rating) {
+    await prisma.rating.create({
+      data: { kind: "MATCH", value: rating, matchId: match.id, fromUserId: userId, comment: note || null, toUserId: validMvp ?? null },
+    });
+  }
+
+  // If the reporter says the comp didn't happen, void it — never award stats.
+  if (happened === false && match.status !== "COMPLETED") {
+    const res = await prisma.match.updateMany({
+      where: { id: match.id, status: { not: "COMPLETED" } },
+      data: { status: "CANCELLED" },
+    });
+    return NextResponse.json({ ok: true, finalized: false, cancelled: res.count === 1 });
+  }
+
+  // Re-read votes (this request's write is now included).
+  const responders = await prisma.participant.findMany({ where: { matchId: match.id, status: "CONFIRMED" } });
+  const voted = responders.filter((p) => p.mvpVoteId || p.fpsRating).length;
+  const threshold = Math.max(1, Math.ceil(responders.length / 2));
 
   let finalized = false;
-  if (match.status !== "COMPLETED" && (voted >= threshold || happened === false)) {
+  if (match.status !== "COMPLETED" && voted >= threshold) {
     const tally = new Map<string, number>();
-    for (const p of confirmed) if (p.mvpVoteId) tally.set(p.mvpVoteId, (tally.get(p.mvpVoteId) ?? 0) + 1);
+    for (const p of responders) if (p.mvpVoteId) tally.set(p.mvpVoteId, (tally.get(p.mvpVoteId) ?? 0) + 1);
     let mvpUserId: string | null = null;
     let best = -1;
     for (const [uid, n] of tally) if (n > best) { best = n; mvpUserId = uid; }
 
     await prisma.$transaction(async (tx) => {
-      await tx.match.update({ where: { id: match.id }, data: { status: "COMPLETED" } });
-      for (const p of confirmed) {
+      // Guarded transition: only the ONE request that flips UPCOMING→COMPLETED
+      // awards stats, so concurrent submissions can't double-credit ELO.
+      const flip = await tx.match.updateMany({
+        where: { id: match.id, status: { not: "COMPLETED" } },
+        data: { status: "COMPLETED" },
+      });
+      if (flip.count !== 1) return;
+      finalized = true;
+      for (const p of responders) {
         const isMvp = p.userId === mvpUserId;
         await tx.user.update({
           where: { id: p.userId },
@@ -71,7 +97,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         });
       }
     });
-    finalized = true;
   }
 
   return NextResponse.json({ ok: true, finalized });

@@ -25,17 +25,26 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
   const [discord, setDiscord] = useState(user.discordName ?? "");
   const [avatar, setAvatar] = useState(user.avatarUrl ?? "");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function save() {
     setSaving(true);
+    setError(null);
     sfx.click();
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, steamProfile: steam, discordName: discord, avatarUrl: avatar }),
-    });
-    setSaving(false);
-    if (res.ok) { setEditing(false); router.refresh(); }
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: displayName.trim(), steamProfile: steam.trim(), discordName: discord.trim(), avatarUrl: avatar.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) { setEditing(false); router.refresh(); }
+      else setError(data.error ?? "השמירה נכשלה — בדקו את הקישורים ונסו שוב");
+    } catch {
+      setError("שגיאת רשת — נסו שוב");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function deleteAccount() {
@@ -64,6 +73,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
         </div>
         <div className="flex gap-2">
           <button onClick={() => { sfx.soft(); setEditing((v) => !v); }} className="btn-ghost text-sm no-tap">{t("profile.edit")}</button>
+          <button onClick={() => { sfx.soft(); signOut({ callbackUrl: "/" }); }} className="btn-ghost text-sm no-tap">יציאה</button>
         </div>
       </motion.div>
 
@@ -73,6 +83,7 @@ export function ProfileView({ user, upcoming, history, stats, reliability }: {
           <div><label className="label">תמונת פרופיל (קישור)</label><input className="input" value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://... (קישור לתמונה)" /></div>
           <div><label className="label">{t("profile.steam")}</label><input className="input" value={steam} onChange={(e) => setSteam(e.target.value)} placeholder="https://steamcommunity.com/id/..." /></div>
           <div><label className="label">{t("profile.discord")}</label><input className="input" value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="username#0000" /></div>
+          {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
           <div className="flex gap-2">
             <button onClick={save} disabled={saving} className="btn-primary flex-1 no-tap">{saving ? "..." : t("common.save")}</button>
             <button onClick={deleteAccount} className="btn-danger no-tap">{t("profile.deleteAccount")}</button>

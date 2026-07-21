@@ -3,15 +3,20 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isSafeHttpOrEmpty } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
+const safeUrl = (max: number) =>
+  z.string().trim().max(max).refine(isSafeHttpOrEmpty, "קישור חייב להתחיל ב-http(s)").optional().or(z.literal(""));
+
 const schema = z.object({
-  displayName: z.string().trim().min(1).max(40).optional(),
-  steamProfile: z.string().trim().max(200).optional().or(z.literal("")),
+  // Empty display name = "leave unchanged" (handled below), so it must not 400.
+  displayName: z.string().trim().max(40).optional(),
+  steamProfile: safeUrl(300),
   discordName: z.string().trim().max(60).optional().or(z.literal("")),
   avatarColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  avatarUrl: z.string().url().max(400).optional().or(z.literal("")),
+  avatarUrl: safeUrl(400),
 });
 
 export async function PATCH(req: Request) {

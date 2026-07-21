@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, audit } from "@/lib/admin";
 import { getAdminUsers } from "@/lib/queries";
+import { isSafeHttpOrEmpty } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ const patchSchema = z.object({
   status: z.enum(["ACTIVE", "BANNED"]).optional(),
   chatBanned: z.boolean().optional(),
   suspendDays: z.number().int().min(0).max(365).optional(),
-  avatarUrl: z.string().url().max(400).optional().or(z.literal("")),
+  avatarUrl: z.string().trim().max(400).refine(isSafeHttpOrEmpty, "קישור לא בטוח").optional().or(z.literal("")),
 });
 
 export async function PATCH(req: Request) {

@@ -55,6 +55,10 @@ export function ChatBox({ matchId, allowGuests = true }: { matchId: string; allo
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastAt = useRef<string | null>(null);
   const failCount = useRef(0);
+  const msgsRef = useRef<ChatMsg[]>([]);
+  useEffect(() => {
+    msgsRef.current = messages;
+  }, [messages]);
 
   const nearBottom = () => {
     const el = scrollRef.current;
@@ -73,13 +77,16 @@ export function ChatBox({ matchId, allowGuests = true }: { matchId: string; allo
   const merge = useCallback((incoming: MessageDTO[]) => {
     if (!incoming.length) return;
     const wasBottom = nearBottom();
-    let addedFromOthers = 0;
+    // Compute fresh/added synchronously from the ref (the state updater runs
+    // later, so counting inside it would always read 0 in the async poll path).
+    const seen = new Set(msgsRef.current.map((m) => m.id));
+    const fresh = incoming.filter((m) => !seen.has(m.id));
+    if (!fresh.length) return;
+    const addedFromOthers = fresh.filter((m) => m.userId !== userId).length;
     setMessages((prev) => {
-      const seen = new Set(prev.map((m) => m.id));
-      const fresh = incoming.filter((m) => !seen.has(m.id));
-      if (!fresh.length) return prev;
-      addedFromOthers = fresh.filter((m) => m.userId !== userId).length;
-      return [...prev, ...fresh];
+      const seenNow = new Set(prev.map((m) => m.id));
+      const freshNow = incoming.filter((m) => !seenNow.has(m.id));
+      return freshNow.length ? [...prev, ...freshNow] : prev;
     });
     lastAt.current = incoming[incoming.length - 1].createdAt;
     if (wasBottom) scrollToBottom();
@@ -247,7 +254,12 @@ export function ChatBox({ matchId, allowGuests = true }: { matchId: string; allo
                       {(m.isGuest || !m.userId) && <span className="chip bg-white/10 text-slate-400 !px-1.5 !py-0 text-[9px]">אורח</span>}
                       <span>{formatTimeOnly(m.createdAt)}</span>
                       {(mine || isAdmin) && !m._status && (
-                        <button onClick={() => remove(m.id)} className="opacity-0 transition group-hover:opacity-100 hover:text-red-400" title="מחיקה">
+                        <button
+                          onClick={() => remove(m.id)}
+                          aria-label="מחיקת הודעה"
+                          className="px-1 opacity-100 transition hover:text-red-400 md:opacity-0 md:group-hover:opacity-100"
+                          title="מחיקה"
+                        >
                           ✕
                         </button>
                       )}

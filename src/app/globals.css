@@ -148,17 +148,31 @@
   z-index: 1;
 }
 
-/* ---- Header shine sweep on the hero heading ---- */
+/* ---- Header sheen: a light band sweeps across the brand word itself
+   (no overlaid duplicate text, so nothing can misalign over the heading) ---- */
 @keyframes wc-shine {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-.wc-shine {
-  background-image: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%);
-  background-size: 200% 100%;
+.wc-sheen {
+  background-image: linear-gradient(110deg, #f59e0b 0%, #f59e0b 42%, #fff7e6 50%, #f59e0b 58%, #f59e0b 100%);
+  background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: wc-shine 6s linear infinite;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.35));
+  animation: wc-shine 6.5s linear infinite;
+}
+
+/* ---- Subtle CS2 team wallpaper wash behind the whole app ---- */
+.cs-bg {
+  background-image: url("/cs-team.webp");
+  background-size: cover;
+  background-position: center 18%;
+  opacity: 0.06;
+  filter: grayscale(0.35) contrast(1.05) brightness(0.9);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 45%, transparent 75%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 45%, transparent 75%);
 }
 
 /* ---- One-shot tactical flash for the primary CTA ---- */
@@ -173,6 +187,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .wc-logo-float,
-  .wc-shine,
+  .wc-sheen,
   .wc-flash { animation: none !important; }
 }

@@ -33,24 +33,40 @@ export function AdminPanel() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
+  // Surface a failed admin action instead of silently no-op'ing.
+  async function run(promise: Promise<Response>, okMsg?: string) {
+    try {
+      const res = await promise;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setMsg(`❌ ${data.error ?? "הפעולה נכשלה"}`);
+        setTimeout(() => setMsg(null), 3000);
+        return false;
+      }
+      if (okMsg) { setMsg(okMsg); setTimeout(() => setMsg(null), 2500); }
+      return true;
+    } catch {
+      setMsg("❌ שגיאת רשת");
+      setTimeout(() => setMsg(null), 3000);
+      return false;
+    }
+  }
+
   async function patchUser(userId: string, body: any) {
-    await fetch("/api/admin/users", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, ...body }) });
-    sfx.click(); load();
+    sfx.click();
+    if (await run(fetch("/api/admin/users", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, ...body }) }))) load();
   }
   async function deleteUser(userId: string, name: string) {
     if (!confirm(`למחוק את ${name}? פעולה בלתי הפיכה.`)) return;
-    await fetch("/api/admin/users", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) });
-    load();
+    if (await run(fetch("/api/admin/users", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) }))) load();
   }
   async function cancelMatch(matchId: string) {
     if (!confirm("לבטל את הקומפ? כל המשתתפים יקבלו התראה.")) return;
-    await fetch("/api/admin/matches", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId, action: "cancel" }) });
-    load();
+    if (await run(fetch("/api/admin/matches", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId, action: "cancel" }) }))) load();
   }
   async function deleteMatch(matchId: string) {
     if (!confirm("למחוק את הקומפ לצמיתות?")) return;
-    await fetch("/api/admin/matches", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId }) });
-    load();
+    if (await run(fetch("/api/admin/matches", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId }) }))) load();
   }
   async function sendBroadcast() {
     if (broadcast.trim().length < 2) return;
@@ -83,6 +99,11 @@ export function AdminPanel() {
           </button>
         ))}
       </div>
+
+      {/* Global action feedback (visible on any tab) */}
+      {msg && tab !== "broadcast" && (
+        <p className={cn("rounded-xl px-3 py-2 text-sm", msg.startsWith("❌") ? "bg-red-500/10 text-red-300" : "bg-emerald-500/10 text-emerald-300")}>{msg}</p>
+      )}
 
       {tab === "stats" && stats && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">

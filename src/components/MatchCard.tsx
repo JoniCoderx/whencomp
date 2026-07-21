@@ -23,6 +23,7 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
     confirmed: spots,
     capacity: match.capacity,
     discordLink: match.discordLink,
+    durationMin: match.durationMin,
   };
 
   return (
@@ -33,7 +34,7 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
       className={cn("card flex flex-col gap-4", match.game === "CS2" && "cs2-tactical")}
     >
       {match.map && (
-        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="no-tap -mx-5 -mt-5 mb-1 block">
+        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="no-tap -mx-5 -mt-5 mb-1 block overflow-hidden rounded-t-2xl">
           <MapThumb code={match.map} rounded="rounded-none" className="h-24 w-full" />
         </Link>
       )}
@@ -74,9 +75,9 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
 
       <div className="flex items-center gap-2 border-t border-white/5 pt-3">
         <Link href={`/matches/${match.id}`} onClick={() => sfx.click()} className="btn-primary flex-1 !py-2.5 text-sm no-tap">
-          לקומפ →
+          לקומפ ←
         </Link>
-        <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2.5 text-sm no-tap" title="WhatsApp">
+        <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2.5 text-sm no-tap" title="WhatsApp" aria-label="שיתוף בוואטסאפ">
           📲
         </a>
         <CalendarButton matchId={match.id} share={sm} compact />

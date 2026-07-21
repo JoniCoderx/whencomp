@@ -1,4 +1,13 @@
 import { initials } from "@/lib/format";
+import { safeHttpUrl } from "@/lib/url";
+
+// Accept a same-origin path (/avatars/..) or a safe http(s) URL; reject
+// javascript:/data: and anything else so a poisoned avatarUrl can't render.
+function safeImgSrc(src?: string | null): string | null {
+  if (!src) return null;
+  if (src.startsWith("/") && !src.startsWith("//")) return src;
+  return safeHttpUrl(src);
+}
 
 export function Avatar({
   name,
@@ -14,12 +23,13 @@ export function Avatar({
   src?: string | null;
 }) {
   const ringCls = ring ? "ring-2 ring-white/20" : "";
+  const imgSrc = safeImgSrc(src);
 
-  if (src) {
+  if (imgSrc) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={src}
+        src={imgSrc}
         alt={name}
         width={size}
         height={size}

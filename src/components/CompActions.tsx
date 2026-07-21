@@ -39,7 +39,7 @@ export function CompActions({ match, full = false }: { match: MatchDTO; full?: b
     sfx.join();
     try {
       const res = await fetch(`/api/matches/${match.id}/join`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) { setError(data.error ?? "שגיאה"); return; }
       setConfirmMsg(
         data.status === "WAITLIST"
@@ -47,6 +47,8 @@ export function CompActions({ match, full = false }: { match: MatchDTO; full?: b
           : "אישרת הגעה לקומפ. אנחנו סומכים עליך שתגיע 💪"
       );
       router.refresh();
+    } catch {
+      setError("שגיאת רשת — בדקו את החיבור ונסו שוב");
     } finally {
       setLoading(false);
     }
@@ -62,12 +64,14 @@ export function CompActions({ match, full = false }: { match: MatchDTO; full?: b
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) { setError(data.error ?? "שגיאה"); return; }
       setShowCancel(false);
       setReason("");
       setConfirmMsg(data.late ? "ביטלת הגעה (ביטול מאוחר)." : "ביטלת הגעה. תודה שעדכנת.");
       router.refresh();
+    } catch {
+      setError("שגיאת רשת — בדקו את החיבור ונסו שוב");
     } finally {
       setLoading(false);
     }

@@ -34,16 +34,10 @@ export function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="relative font-display text-4xl font-black leading-tight md:text-6xl"
+          className="font-display text-4xl font-black leading-tight md:text-6xl"
         >
-          <span className="relative">
-            {t("hero.title1")}{" "}
-            <span className="text-brand-500 text-brand-glow">{t("hero.title2")}</span>
-            {/* Shine sweep overlay (decorative, transparent except the band) */}
-            <span aria-hidden className="wc-shine pointer-events-none absolute inset-0 text-transparent">
-              {t("hero.title1")} {t("hero.title2")}
-            </span>
-          </span>
+          {t("hero.title1")}{" "}
+          <span className="wc-sheen">{t("hero.title2")}</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 12 }}

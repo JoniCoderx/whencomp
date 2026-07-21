@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/format";
+import { safeHttpUrl } from "@/lib/url";
 import { sfx } from "@/lib/sound";
 import { Avatar } from "./Avatar";
 
@@ -34,22 +35,28 @@ export function PlayersView({ players: initial }: { players: Player[] }) {
   const userId = (session?.user as any)?.id;
   const [players, setPlayers] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   async function vote(p: Player) {
     if (!userId) return router.push("/login");
     if (p.id === userId) return;
     setBusy(p.id);
+    setErr(null);
     p.votedByMe ? sfx.soft() : sfx.join();
     try {
       const res = await fetch(`/api/players/${p.id}/vote`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setPlayers((prev) =>
           [...prev.map((x) => (x.id === p.id ? { ...x, votes: data.count, votedByMe: data.voted } : x))].sort(
             (a, b) => b.votes - a.votes || b.matchesPlayed - a.matchesPlayed || (a.isCaptain ? -1 : 1)
           )
         );
+      } else {
+        setErr(data.error ?? "לא ניתן להצביע כעת, נסו שוב");
       }
+    } catch {
+      setErr("שגיאת רשת — נסו שוב");
     } finally {
       setBusy(null);
     }
@@ -61,6 +68,8 @@ export function PlayersView({ players: initial }: { players: Player[] }) {
         <h1 className="font-display text-2xl font-bold md:text-3xl">🏆 טבלת השחקנים</h1>
         <p className="mt-1 text-sm text-slate-400">הצביעו לשחקנים הכי טובים — הכי מוצבעים בראש.</p>
       </div>
+
+      {err && <p className="mb-3 rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-300">{err}</p>}
 
       <div className="space-y-2.5">
         {players.map((p, i) => {
@@ -90,8 +99,8 @@ export function PlayersView({ players: initial }: { players: Player[] }) {
                   <span style={{ color: p.reliability.color }}>{p.reliability.label}</span>
                   <span className="text-slate-600">·</span>
                   <span className="text-slate-500">{p.matchesPlayed} קומפים</span>
-                  {p.steamProfile && (
-                    <a href={p.steamProfile} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="text-brand-400 hover:underline no-tap">
+                  {safeHttpUrl(p.steamProfile) && (
+                    <a href={safeHttpUrl(p.steamProfile)!} target="_blank" rel="noreferrer noopener nofollow" onClick={() => sfx.soft()} className="text-brand-400 hover:underline no-tap">
                       Steam ↗
                     </a>
                   )}

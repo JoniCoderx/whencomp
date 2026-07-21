@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { buildShareText, whatsappLink, nativeShare, type ShareMatch } from "@/lib/share";
+import { safeHttpUrl } from "@/lib/url";
 import { sfx } from "@/lib/sound";
 import { CalendarButton } from "./CalendarButton";
 import type { MatchDTO } from "@/lib/types";
@@ -21,6 +22,7 @@ export function ShareBar({ match }: { match: MatchDTO }) {
     confirmed: match.confirmed.length,
     capacity: match.capacity,
     discordLink: match.discordLink,
+    durationMin: match.durationMin,
   };
 
   function flash() {
@@ -37,20 +39,21 @@ export function ShareBar({ match }: { match: MatchDTO }) {
       <button
         onClick={async () => {
           sfx.click();
-          const ok = await nativeShare(sm);
-          if (!ok) {
+          const res = await nativeShare(sm);
+          if (res === "unsupported") {
             try {
               await navigator.clipboard?.writeText(url);
             } catch {}
             flash();
           }
+          // "cancelled" → user backed out; do nothing.
         }}
         className="btn-ghost text-sm no-tap"
       >
         <span>🔗</span> {copied ? t("lobby.copied") : t("lobby.share")}
       </button>
-      {match.discordLink && (
-        <a href={match.discordLink} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost text-sm no-tap">
+      {safeHttpUrl(match.discordLink) && (
+        <a href={safeHttpUrl(match.discordLink)!} target="_blank" rel="noreferrer noopener nofollow" onClick={() => sfx.soft()} className="btn-ghost text-sm no-tap">
           <span>🎧</span> {t("lobby.discord")}
         </a>
       )}

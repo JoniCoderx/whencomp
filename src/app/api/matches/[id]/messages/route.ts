@@ -4,14 +4,22 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toMessageDTO } from "@/lib/serialize";
+import { canViewMatch } from "@/lib/queries";
 import { rateLimit } from "@/lib/ratelimit";
 import { notifyUsers, participantUserIds } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
-// Poll chat messages. `after` returns only messages newer than a given id-time.
+// Poll chat messages. `since` returns only messages newer than a timestamp.
 export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions);
+  const viewerId = (session?.user as any)?.id;
   const url = new URL(req.url);
+  // Private-match chat is only readable by creator/participant/invite-holder.
+  const invite = url.searchParams.get("invite") ?? undefined;
+  if (!(await canViewMatch(params.id, viewerId, invite)))
+    return NextResponse.json({ error: "אין הרשאה לצפות בצ׳אט הזה" }, { status: 403 });
+
   const sinceIso = url.searchParams.get("since");
   const where: any = { matchId: params.id };
   if (sinceIso) {
@@ -48,6 +56,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const match = await prisma.match.findUnique({ where: { id: params.id }, select: { id: true, title: true, allowGuests: true } });
   if (!match) return NextResponse.json({ error: "הקומפ לא נמצא" }, { status: 404 });
+  // Only someone who can see the (possibly private) match may post to its chat.
+  if (!(await canViewMatch(params.id, userId)))
+    return NextResponse.json({ error: "אין הרשאה לכתוב בצ׳אט הזה" }, { status: 403 });
   if (me.isGuest && match.allowGuests === false)
     return NextResponse.json({ error: "הצ׳אט סגור לאורחים בקומפ הזה" }, { status: 403 });
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/ratelimit";
 import { notifyUsers, systemMessage, participantUserIds } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "יש להתחבר" }, { status: 401 });
+  if (!rateLimit(`join:${userId}`, 20, 30_000))
+    return NextResponse.json({ error: "לאט יותר 🙂" }, { status: 429 });
 
   const me = await prisma.user.findUnique({ where: { id: userId } });
   if (!me || me.status === "BANNED") return NextResponse.json({ error: "החשבון חסום" }, { status: 403 });

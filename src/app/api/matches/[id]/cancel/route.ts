@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { notifyUsers, systemMessage, participantUserIds } from "@/lib/notify";
+import { rateLimit } from "@/lib/ratelimit";
+import { notifyUsers, systemMessage } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   if (!userId) return NextResponse.json({ error: "יש להתחבר" }, { status: 401 });
+  if (!rateLimit(`cancel:${userId}`, 20, 30_000))
+    return NextResponse.json({ error: "לאט יותר 🙂" }, { status: 429 });
 
   const parsed = schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });

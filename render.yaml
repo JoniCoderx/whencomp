@@ -31,3 +31,9 @@ services:
       - key: NEXTAUTH_SECRET
         # Render generates a strong random value automatically.
         generateValue: true
+      - key: ROSTER_PASSWORD
+        # Private login password for the preset roster accounts (captain/admin).
+        # Set this in the dashboard; on the next deploy every roster account's
+        # password rotates to it. Without it, roster accounts get a random
+        # password (no public default). Keep it secret.
+        sync: false

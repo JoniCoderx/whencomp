@@ -54,6 +54,26 @@ export async function getMatch(id: string, viewerId?: string, inviteCode?: strin
   }, null);
 }
 
+// Whether a viewer may see a match's contents (page, chat, ICS). Public matches
+// are visible to everyone; private ones only to the creator, a current
+// participant, or a holder of the invite code.
+export async function canViewMatch(matchId: string, viewerId?: string, inviteCode?: string): Promise<boolean> {
+  try {
+    const m = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { isPrivate: true, creatorId: true, inviteCode: true, participants: { select: { userId: true, status: true } } },
+    });
+    if (!m) return false;
+    if (!m.isPrivate) return true;
+    if (viewerId && m.creatorId === viewerId) return true;
+    if (viewerId && m.participants.some((p) => p.userId === viewerId && p.status !== "OUT")) return true;
+    if (inviteCode && m.inviteCode && inviteCode === m.inviteCode) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function getMatchByInvite(code: string): Promise<MatchDTO | null> {
   return safe(async () => {
     const m = await prisma.match.findUnique({ where: { inviteCode: code }, include: matchInclude });
@@ -120,7 +140,8 @@ export async function getRoster(viewerId?: string) {
 
 async function rosterInner(viewerId?: string) {
   const { CAPTAIN_USERNAME } = await import("@/lib/config");
-  const users = await prisma.user.findMany({ where: { status: "ACTIVE" } });
+  // Real roster only — never list anonymous guest accounts.
+  const users = await prisma.user.findMany({ where: { status: "ACTIVE", isGuest: false } });
 
   const [voteGroups, myVotes] = await Promise.all([
     prisma.playerVote.groupBy({ by: ["targetId"], _count: { targetId: true } }),

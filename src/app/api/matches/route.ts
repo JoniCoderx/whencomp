@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { matchInclude, toMatchDTO } from "@/lib/serialize";
 import { rateLimit } from "@/lib/ratelimit";
+import { isSafeHttpOrEmpty } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ const createSchema = z.object({
   map: z.string().max(32).optional().or(z.literal("")),
   scheduledAt: z.string(),
   durationMin: z.number().int().min(30).max(360).optional(),
-  discordLink: z.string().url("קישור לא תקין").optional().or(z.literal("")),
+  discordLink: z.string().trim().max(300).refine(isSafeHttpOrEmpty, "קישור חייב להתחיל ב-http(s)").optional().or(z.literal("")),
   notes: z.string().max(280).optional().or(z.literal("")),
   isPrivate: z.boolean().optional(),
   allowGuests: z.boolean().optional(),

@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { sfx } from "@/lib/sound";
-import { formatMatchTime, jerusalemWallTimeToDate, cn } from "@/lib/format";
+import { formatMatchTime, jerusalemWallTimeToDate, dayKey, cn } from "@/lib/format";
 import { GameLogo } from "./GameLogo";
 import { MapThumb } from "./MapThumb";
 import { MAP_OPTIONS, mapMeta } from "@/lib/maps";
@@ -16,7 +16,7 @@ import { buildShareText, whatsappLink, type ShareMatch } from "@/lib/share";
 function tomorrow() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return dayKey(d); // Jerusalem calendar date, not UTC
 }
 
 export function CreateForm() {
@@ -133,7 +133,7 @@ export function CreateForm() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label">{t("create.field.date")}</label>
-          <input type="date" className="input" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} required />
+          <input type="date" className="input" value={date} min={dayKey(new Date())} onChange={(e) => setDate(e.target.value)} required />
         </div>
         <div>
           <label className="label">{t("create.field.time")}</label>
@@ -177,13 +177,13 @@ export function CreateForm() {
         <label className="label">{t("create.field.notes")}</label>
         <textarea className="input min-h-[70px] resize-none" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={280} placeholder="מפה, רמה, כל מה שחשוב" />
       </div>
-      <button type="button" onClick={() => { sfx.soft(); setIsPrivate((v) => !v); }} className={cn("flex w-full items-center justify-between rounded-xl border px-4 py-3 no-tap", isPrivate ? "border-brand-500/50 bg-brand-500/10" : "border-white/10 bg-white/5")}>
+      <button type="button" role="switch" aria-checked={isPrivate} aria-label="קומפ פרטי" onClick={() => { sfx.soft(); setIsPrivate((v) => !v); }} className={cn("flex w-full items-center justify-between rounded-xl border px-4 py-3 no-tap", isPrivate ? "border-brand-500/50 bg-brand-500/10" : "border-white/10 bg-white/5")}>
         <span className="text-sm font-bold">קומפ פרטי (בהזמנה בלבד)</span>
         <span className={cn("h-6 w-11 rounded-full p-0.5 transition", isPrivate ? "bg-brand-500" : "bg-white/15")}>
           <span className={cn("block h-5 w-5 rounded-full bg-white transition", isPrivate ? "-translate-x-5" : "")} />
         </span>
       </button>
-      <button type="button" onClick={() => { sfx.soft(); setAllowGuests((v) => !v); }} className={cn("flex w-full items-center justify-between rounded-xl border px-4 py-3 no-tap", allowGuests ? "border-brand-500/50 bg-brand-500/10" : "border-white/10 bg-white/5")}>
+      <button type="button" role="switch" aria-checked={allowGuests} aria-label="אפשר כניסת אורחים" onClick={() => { sfx.soft(); setAllowGuests((v) => !v); }} className={cn("flex w-full items-center justify-between rounded-xl border px-4 py-3 no-tap", allowGuests ? "border-brand-500/50 bg-brand-500/10" : "border-white/10 bg-white/5")}>
         <span className="text-sm font-bold">אפשר כניסת אורחים</span>
         <span className={cn("h-6 w-11 rounded-full p-0.5 transition", allowGuests ? "bg-brand-500" : "bg-white/15")}>
           <span className={cn("block h-5 w-5 rounded-full bg-white transition", allowGuests ? "-translate-x-5" : "")} />

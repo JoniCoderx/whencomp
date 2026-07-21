@@ -119,7 +119,15 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET ?? "when-comp-dev-secret-change-me",
+  // Never ship a hardcoded secret to production — a public secret lets anyone
+  // forge an admin JWT. Require it in prod; allow a dev-only fallback locally.
+  secret:
+    process.env.NEXTAUTH_SECRET ??
+    (process.env.NODE_ENV === "production"
+      ? (() => {
+          throw new Error("NEXTAUTH_SECRET is required in production");
+        })()
+      : "when-comp-dev-secret-only"),
 };
 
 function hashCode(str: string): number {
