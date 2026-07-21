@@ -139,7 +139,7 @@ export const he: Record<string, string> = {
   "auth.password": "סיסמה",
   "auth.login.submit": "כניסה",
   "auth.register.submit": "יצירת חשבון",
-  "auth.guestNote": "משתמש דמו: Neo / password123",
+  "auth.guestNote": "רוצים רק להציץ? היכנסו כאורח בלי הרשמה.",
 
   "admin.title": "פאנל ניהול",
   "admin.subtitle": "ניהול משתמשים והרשאות.",

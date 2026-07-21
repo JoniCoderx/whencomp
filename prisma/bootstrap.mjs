@@ -1,7 +1,8 @@
 // Production-safe roster bootstrap. Runs on every container start (see
 // Dockerfile CMD). Idempotent: creates the preset players if missing, and
-// keeps their Steam link + captain/admin flag in sync WITHOUT overwriting a
-// player's own later edits (display name / password stay theirs).
+// keeps their canonical display name, Steam link, captain/admin flag and
+// (when provided) avatar in sync on every boot. The display names below are
+// the owner-dictated roster names and are enforced even on existing accounts.
 
 // @prisma/client is CommonJS — use default import for reliable ESM interop on Node 20.
 import pkg from "@prisma/client";
@@ -34,9 +35,10 @@ async function main() {
     const r = ROSTER[i];
     await prisma.user.upsert({
       where: { username: r.username },
-      // Keep the player's own edits; ensure Steam link, captain role, and
-      // (when provided) the roster avatar.
+      // Enforce the canonical roster name + Steam link + captain role, and
+      // (when provided) the roster avatar — on existing accounts too.
       update: {
+        displayName: r.display,
         steamProfile: r.steam,
         ...(r.captain ? { role: "ADMIN" } : {}),
         ...(r.avatar ? { avatarUrl: r.avatar } : {}),

@@ -11,7 +11,9 @@ export function ShareBar({ match }: { match: MatchDTO }) {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
-  const url = typeof window !== "undefined" ? `${window.location.origin}/matches/${match.id}` : `/matches/${match.id}`;
+  const base = typeof window !== "undefined" ? `${window.location.origin}/matches/${match.id}` : `/matches/${match.id}`;
+  // Private comps: include the invite code so the recipient can actually open it.
+  const url = match.isPrivate && match.inviteCode ? `${base}?invite=${encodeURIComponent(match.inviteCode)}` : base;
   const sm: ShareMatch = {
     title: match.title,
     scheduledAt: match.scheduledAt,

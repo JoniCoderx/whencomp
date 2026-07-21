@@ -15,6 +15,8 @@ export function CompActions({ match, full = false }: { match: MatchDTO; full?: b
   const router = useRouter();
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id;
+  const isGuest = (session?.user as any)?.isGuest === true;
+  const guestBlocked = isGuest && !match.allowGuests;
 
   const [loading, setLoading] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
@@ -73,6 +75,19 @@ export function CompActions({ match, full = false }: { match: MatchDTO; full?: b
 
   if (closed) {
     return <div className="rounded-xl bg-white/5 py-3 text-center text-sm text-slate-400">{matchStatusInfo(match).label}</div>;
+  }
+
+  // Guest trying to act on a comp that disallows guests — explain instead of
+  // showing a button that would only 403.
+  if (guestBlocked && (!mine || myStatus === "OUT")) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-center text-sm text-slate-300">
+        הקומפ סגור לאורחים.{" "}
+        <button onClick={() => router.push("/login")} className="font-bold text-brand-400 underline no-tap">
+          הירשמו כדי להצטרף
+        </button>
+      </div>
+    );
   }
 
   return (

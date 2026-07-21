@@ -36,11 +36,15 @@ export function attendanceFromParticipations(
   const s: AttendanceStats = { arrived: 0, cancelledOnTime: 0, cancelledLate: 0, noShow: 0, total: parts.length };
   for (const p of parts) {
     if (p.status === "OUT") {
+      // Only confirmed players who backed out count as cancellations. Waitlist
+      // leavers are removed entirely (see cancel route), so any OUT row here is
+      // a real confirmed cancellation.
       if (p.outLate) s.cancelledLate++;
       else s.cancelledOnTime++;
-    } else if (p.match.status === "COMPLETED") {
+    } else if (p.status === "CONFIRMED" && p.match.status === "COMPLETED") {
+      // Waitlisted players are NOT counted as "arrived".
       if (p.attendance === "NOSHOW") s.noShow++;
-      else s.arrived++; // confirmed + completed defaults to arrived
+      else s.arrived++;
     }
   }
   return s;

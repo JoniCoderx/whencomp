@@ -17,6 +17,8 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const me = await prisma.user.findUnique({ where: { id: userId } });
   if (!me || me.status === "BANNED") return NextResponse.json({ error: "החשבון חסום" }, { status: 403 });
+  if (me.suspendedUntil && me.suspendedUntil.getTime() > Date.now())
+    return NextResponse.json({ error: "החשבון מושהה זמנית" }, { status: 403 });
 
   const match = await prisma.match.findUnique({ where: { id: params.id } });
   if (!match) return NextResponse.json({ error: "הקומפ לא נמצא" }, { status: 404 });

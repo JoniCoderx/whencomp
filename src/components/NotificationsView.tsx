@@ -18,7 +18,10 @@ export function NotificationsView() {
 
   useEffect(() => {
     if (typeof Notification !== "undefined") setPerm(Notification.permission);
-    fetch("/api/notifications").then((r) => r.json()).then((d) => setItems(d.items ?? []));
+    fetch("/api/notifications")
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((d) => setItems(d.items ?? []))
+      .catch(() => setItems([])); // never spin forever on a network error
     // mark all read on view
     fetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: "{}" });
   }, []);

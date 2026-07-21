@@ -7,14 +7,9 @@ export const PLAY_ELO_BASE = 8;
  * Compute the Elo delta a player earns from a completed match.
  * Everyone gets a small participation reward; the MVP gets a bonus.
  */
-export function computeEloDelta(opts: {
-  isMvp: boolean;
-  fpsRating?: number | null;
-}): number {
+export function computeEloDelta(opts: { isMvp: boolean }): number {
   let delta = PLAY_ELO_BASE;
   if (opts.isMvp) delta += MVP_ELO_BONUS;
-  // Reward reporting good server conditions marginally (encourages feedback).
-  if (opts.fpsRating && opts.fpsRating >= 4) delta += 2;
   return delta;
 }
 

@@ -64,7 +64,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         await tx.user.update({
           where: { id: p.userId },
           data: {
-            elo: { increment: computeEloDelta({ isMvp, fpsRating: p.fpsRating }) },
+            elo: { increment: computeEloDelta({ isMvp }) },
             matchesPlayed: { increment: 1 },
             mvpCount: isMvp ? { increment: 1 } : undefined,
           },

@@ -76,6 +76,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (user.status === "BANNED") throw new Error("החשבון חסום");
+        if (user.suspendedUntil && user.suspendedUntil.getTime() > Date.now()) {
+          const until = user.suspendedUntil.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric" });
+          throw new Error(`החשבון מושהה עד ${until}`);
+        }
 
         return {
           id: user.id,

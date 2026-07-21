@@ -36,6 +36,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const me = await prisma.user.findUnique({ where: { id: userId } });
   if (!me || me.status === "BANNED") return NextResponse.json({ error: "החשבון חסום" }, { status: 403 });
+  if (me.suspendedUntil && me.suspendedUntil.getTime() > Date.now())
+    return NextResponse.json({ error: "החשבון מושהה זמנית" }, { status: 403 });
   if (me.chatBanned) return NextResponse.json({ error: "הושתקת בצ׳אט ע״י מנהל" }, { status: 403 });
 
   if (!rateLimit(`chat:${userId}`, 20, 20_000))

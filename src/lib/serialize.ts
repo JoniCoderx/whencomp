@@ -30,6 +30,7 @@ export function toMatchDTO(m: any, includeInvite = false): MatchDTO {
     discordLink: m.discordLink ?? null,
     notes: m.notes ?? null,
     isPrivate: !!m.isPrivate,
+    allowGuests: m.allowGuests !== false,
     inviteCode: includeInvite ? m.inviteCode ?? null : null,
     creatorId: m.creatorId,
     creatorName: m.creator?.displayName ?? m.creator?.username ?? "לא ידוע",

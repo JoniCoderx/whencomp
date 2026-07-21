@@ -37,12 +37,20 @@ export async function getAllPublicMatches(): Promise<MatchDTO[]> {
   }, []);
 }
 
-export async function getMatch(id: string, viewerId?: string): Promise<MatchDTO | null> {
+export async function getMatch(id: string, viewerId?: string, inviteCode?: string): Promise<MatchDTO | null> {
   return safe(async () => {
     const m = await prisma.match.findUnique({ where: { id }, include: matchInclude });
     if (!m) return null;
-    const isCreator = viewerId && m.creatorId === viewerId;
-    return toMatchDTO(m, !!isCreator);
+    const isCreator = !!viewerId && m.creatorId === viewerId;
+    // Private comps are visible only to the creator, current participants, or
+    // anyone holding the invite link (?invite=CODE).
+    if (m.isPrivate && !isCreator) {
+      const isParticipant =
+        !!viewerId && (m.participants ?? []).some((p: any) => p.userId === viewerId && p.status !== "OUT");
+      const invited = !!inviteCode && !!m.inviteCode && inviteCode === m.inviteCode;
+      if (!isParticipant && !invited) return null;
+    }
+    return toMatchDTO(m, isCreator);
   }, null);
 }
 

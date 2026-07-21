@@ -22,6 +22,7 @@ export interface MatchDTO {
   discordLink: string | null;
   notes: string | null;
   isPrivate: boolean;
+  allowGuests: boolean;
   inviteCode: string | null;
   creatorId: string;
   creatorName: string;

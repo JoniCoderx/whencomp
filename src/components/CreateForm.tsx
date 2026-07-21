@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/i18n/I18nProvider";
 import { sfx } from "@/lib/sound";
-import { formatMatchTime, cn } from "@/lib/format";
+import { formatMatchTime, jerusalemWallTimeToDate, cn } from "@/lib/format";
 import { GameLogo } from "./GameLogo";
 import { buildShareText, whatsappLink, type ShareMatch } from "@/lib/share";
 
@@ -34,7 +34,9 @@ export function CreateForm() {
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ id: string } | null>(null);
 
-  const scheduledAt = new Date(`${date}T${time}:00`);
+  // Always interpret the picked date/time as Israel local time, regardless of
+  // the user's device timezone.
+  const scheduledAt = jerusalemWallTimeToDate(date, time);
   const isPast = scheduledAt.getTime() < Date.now();
 
   function toPreview(e: React.FormEvent) {

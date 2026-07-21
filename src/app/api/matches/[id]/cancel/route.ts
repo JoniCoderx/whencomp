@@ -31,6 +31,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const me = await prisma.user.findUnique({ where: { id: userId } });
   const name = me?.displayName ?? me?.username ?? "שחקן";
 
+  // Leaving the waitlist is not a cancellation — remove the row entirely so it
+  // never dings reliability or shows in the admin cancellations list.
+  if (!wasConfirmed) {
+    await prisma.participant.delete({ where: { id: p.id } });
+    await systemMessage(match.id, `${name} יצא/ה מרשימת ההמתנה`);
+    return NextResponse.json({ ok: true, late: false });
+  }
+
   // Promote the first waitlisted player if a confirmed seat opened up.
   let promotedUserId: string | null = null;
   await prisma.$transaction(async (tx) => {
@@ -38,15 +46,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       where: { id: p.id },
       data: { status: "OUT", outReason: parsed.data.reason || null, outLate: late },
     });
-    if (wasConfirmed) {
-      const next = await tx.participant.findFirst({
-        where: { matchId: match.id, status: "WAITLIST" },
-        orderBy: { joinedAt: "asc" },
-      });
-      if (next) {
-        await tx.participant.update({ where: { id: next.id }, data: { status: "CONFIRMED" } });
-        promotedUserId = next.userId;
-      }
+    const next = await tx.participant.findFirst({
+      where: { matchId: match.id, status: "WAITLIST" },
+      orderBy: { joinedAt: "asc" },
+    });
+    if (next) {
+      await tx.participant.update({ where: { id: next.id }, data: { status: "CONFIRMED" } });
+      promotedUserId = next.userId;
     }
   });
 

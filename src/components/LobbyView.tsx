@@ -123,7 +123,7 @@ export function LobbyView({ match }: { match: MatchDTO }) {
         </div>
 
         {/* Chat */}
-        <ChatBox matchId={match.id} />
+        <ChatBox matchId={match.id} allowGuests={match.allowGuests} />
       </div>
     </div>
   );

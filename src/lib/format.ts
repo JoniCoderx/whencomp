@@ -4,6 +4,34 @@ export function cn(...classes: (string | false | null | undefined)[]): string {
 
 const TZ = "Asia/Jerusalem";
 
+// Offset (zone − UTC) in ms that `tz` had at instant `ts`.
+function tzOffsetMs(ts: number, tz: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const p: Record<string, number> = {};
+  for (const part of dtf.formatToParts(new Date(ts))) {
+    if (part.type !== "literal") p[part.type] = Number(part.value);
+  }
+  const asIfUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour === 24 ? 0 : p.hour, p.minute, p.second);
+  return asIfUtc - ts;
+}
+
+// Interpret a wall-clock date+time ("YYYY-MM-DD", "HH:MM") as Asia/Jerusalem
+// local time and return the correct UTC Date — independent of the browser's
+// own timezone. Handles DST via a two-pass offset correction.
+export function jerusalemWallTimeToDate(dateStr: string, timeStr: string): Date {
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  const [h, mi] = timeStr.split(":").map(Number);
+  const guess = Date.UTC(y, mo - 1, d, h, mi);
+  const off1 = tzOffsetMs(guess, TZ);
+  let ts = guess - off1;
+  const off2 = tzOffsetMs(ts, TZ);
+  if (off2 !== off1) ts = guess - off2;
+  return new Date(ts);
+}
+
 export function formatMatchTime(date: string | Date): string {
   const d = new Date(date);
   const now = new Date();

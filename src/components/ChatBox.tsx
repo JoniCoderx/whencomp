@@ -37,11 +37,13 @@ function renderBody(body: string) {
   );
 }
 
-export function ChatBox({ matchId }: { matchId: string }) {
+export function ChatBox({ matchId, allowGuests = true }: { matchId: string; allowGuests?: boolean }) {
   const { t } = useI18n();
   const { data: session } = useSession();
   const userId = (session?.user as any)?.id;
   const isAdmin = (session?.user as any)?.role === "ADMIN";
+  const isGuest = (session?.user as any)?.isGuest === true;
+  const guestBlocked = isGuest && !allowGuests;
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,15 +73,17 @@ export function ChatBox({ matchId }: { matchId: string }) {
   const merge = useCallback((incoming: MessageDTO[]) => {
     if (!incoming.length) return;
     const wasBottom = nearBottom();
+    let addedFromOthers = 0;
     setMessages((prev) => {
       const seen = new Set(prev.map((m) => m.id));
       const fresh = incoming.filter((m) => !seen.has(m.id));
       if (!fresh.length) return prev;
+      addedFromOthers = fresh.filter((m) => m.userId !== userId).length;
       return [...prev, ...fresh];
     });
     lastAt.current = incoming[incoming.length - 1].createdAt;
     if (wasBottom) scrollToBottom();
-    else setUnread((u) => u + incoming.filter((m) => m.userId !== userId).length);
+    else if (addedFromOthers > 0) setUnread((u) => u + addedFromOthers);
   }, [scrollToBottom, userId]);
 
   // Poll loop with reconnect state.
@@ -132,7 +136,14 @@ export function ChatBox({ matchId }: { matchId: string }) {
       if (!res.ok) throw new Error("send failed");
       const saved: MessageDTO = await res.json();
       lastAt.current = saved.createdAt;
-      setMessages((prev) => prev.map((m) => (m._tempId === tempId ? { ...saved } : m)));
+      // The 3s poll may have already appended this same message (real id) in the
+      // window before our POST resolved. Drop that copy, then swap temp→saved so
+      // we never render two bubbles with the same key.
+      setMessages((prev) =>
+        prev
+          .filter((m) => m.id !== saved.id)
+          .map((m) => (m._tempId === tempId ? { ...saved } : m))
+      );
     } catch {
       setMessages((prev) =>
         prev.map((m) => (m._tempId === tempId ? { ...m, _status: "failed" } : m))
@@ -280,7 +291,11 @@ export function ChatBox({ matchId }: { matchId: string }) {
       )}
 
       <div className="border-t border-white/5 p-3 safe-bottom">
-        {userId ? (
+        {userId && guestBlocked ? (
+          <p className="rounded-xl bg-white/5 py-2.5 text-center text-xs text-slate-400">
+            הצ׳אט סגור לאורחים בקומפ הזה
+          </p>
+        ) : userId ? (
           <div className="flex gap-2">
             <input
               className="input !py-2.5"
