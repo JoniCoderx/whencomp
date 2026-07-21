@@ -9,6 +9,8 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { sfx } from "@/lib/sound";
 import { formatMatchTime, jerusalemWallTimeToDate, cn } from "@/lib/format";
 import { GameLogo } from "./GameLogo";
+import { MapThumb } from "./MapThumb";
+import { MAP_OPTIONS, mapMeta } from "@/lib/maps";
 import { buildShareText, whatsappLink, type ShareMatch } from "@/lib/share";
 
 function tomorrow() {
@@ -26,6 +28,7 @@ export function CreateForm() {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(tomorrow());
   const [time, setTime] = useState("22:00");
+  const [map, setMap] = useState("any");
   const [notes, setNotes] = useState("");
   const [discord, setDiscord] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -57,7 +60,7 @@ export function CreateForm() {
       const res = await fetch("/api/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), game: "CS2", scheduledAt: scheduledAt.toISOString(), notes, discordLink: discord, isPrivate, allowGuests }),
+        body: JSON.stringify({ title: title.trim(), game: "CS2", map: map === "any" ? "" : map, scheduledAt: scheduledAt.toISOString(), notes, discordLink: discord, isPrivate, allowGuests }),
       });
       const data = await res.json();
       if (!res.ok) { setError(typeof data.error === "string" ? data.error : "שגיאה ביצירה"); setStep("form"); return; }
@@ -103,6 +106,7 @@ export function CreateForm() {
           {notes && <p className="mt-3 text-sm text-slate-300">{notes}</p>}
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             <span className="chip bg-white/5 text-slate-300">עד 5 שחקנים</span>
+            {map !== "any" && <span className="chip bg-white/5 text-slate-300">{mapMeta(map).emoji} {mapMeta(map).name}</span>}
             {isPrivate && <span className="chip bg-white/5 text-slate-300">🔒 פרטי</span>}
             {discord && <span className="chip bg-white/5 text-slate-300">🎧 דיסקורד</span>}
           </div>
@@ -137,6 +141,34 @@ export function CreateForm() {
         </div>
       </div>
       {isPast && <p className="text-sm text-red-400">התאריך שנבחר כבר עבר</p>}
+      <div>
+        <label className="label">מפה</label>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {MAP_OPTIONS.map((mp) => (
+            <button
+              key={mp.code}
+              type="button"
+              onClick={() => { sfx.soft(); setMap(mp.code); }}
+              className={cn(
+                "relative aspect-[4/3] overflow-hidden rounded-xl border no-tap transition",
+                map === mp.code ? "border-brand-500 ring-2 ring-brand-500/40" : "border-white/10 hover:border-white/30"
+              )}
+            >
+              {mp.code === "any" ? (
+                <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-white/[0.04] text-slate-300">
+                  <span className="text-xl">🎲</span>
+                  <span className="text-[11px] font-bold">כל מפה</span>
+                </span>
+              ) : (
+                <MapThumb code={mp.code} rounded="rounded-none" className="h-full w-full" />
+              )}
+              {map === mp.code && (
+                <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-brand-500 text-[10px] font-black text-ink-950">✓</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
       <div>
         <label className="label">{t("create.field.discord")}</label>
         <input className="input" type="url" value={discord} onChange={(e) => setDiscord(e.target.value)} placeholder="https://discord.gg/..." />

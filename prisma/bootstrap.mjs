@@ -20,13 +20,13 @@ const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6"
 // `avatar` = direct image URL (e.g. the Steam avatar). Leave "" to fall back
 // to a coloured-initials avatar. Fill these in to show real profile pictures.
 const ROSTER = [
-  { username: "HackerMotherFucker", display: "Sharmuta #1",        steam: "https://steamcommunity.com/id/HackerMotherFucker", avatar: "", captain: true },
-  { username: "ChutmarikaIL",       display: "ChutMarika!",        steam: "https://steamcommunity.com/id/ChutmarikaIL",        avatar: "" },
-  { username: "HextoN_O",           display: "HextoN",             steam: "https://steamcommunity.com/id/HextoN_O",            avatar: "" },
-  { username: "Negroniko",          display: "Negroni",            steam: "https://steamcommunity.com/id/Negroniko",           avatar: "" },
-  { username: "player_414396",      display: "Audi A1 2013 1.4T",  steam: "https://steamcommunity.com/profiles/76561198169414396", avatar: "" },
-  { username: "player_898544",      display: "Hassan Nasrallah",   steam: "https://steamcommunity.com/profiles/76561198830898544", avatar: "" },
-  { username: "player_502816",      display: "סמדי בומבה פרימום",  steam: "https://steamcommunity.com/profiles/76561198227502816", avatar: "" },
+  { username: "HackerMotherFucker", display: "Sharmuta #1",        steam: "https://steamcommunity.com/id/HackerMotherFucker", avatar: "/avatars/sharmuta1.png", captain: true },
+  { username: "ChutmarikaIL",       display: "ChutMarika!",        steam: "https://steamcommunity.com/id/ChutmarikaIL",        avatar: "/avatars/chutmarika.png" },
+  { username: "HextoN_O",           display: "HextoN",             steam: "https://steamcommunity.com/id/HextoN_O",            avatar: "/avatars/hexton.png" },
+  { username: "Negroniko",          display: "Negroni",            steam: "https://steamcommunity.com/id/Negroniko",           avatar: "/avatars/negroni.png" },
+  { username: "player_414396",      display: "Audi A1 2013 1.4T",  steam: "https://steamcommunity.com/profiles/76561198169414396", avatar: "/avatars/audi.png" },
+  { username: "player_898544",      display: "Hassan Nasrallah",   steam: "https://steamcommunity.com/profiles/76561198830898544", avatar: "/avatars/hassan.png" },
+  { username: "player_502816",      display: "סמדי בומבה פרימום",  steam: "https://steamcommunity.com/profiles/76561198227502816", avatar: "/avatars/samdi.png" },
 ];
 
 async function main() {

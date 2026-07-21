@@ -56,6 +56,7 @@ model Match {
   id          String   @id @default(cuid())
   title       String
   game        String   @default("CS2")
+  map         String? // CS2 map code, e.g. de_dust2 (null = any)
   scheduledAt DateTime // UTC
   durationMin Int      @default(90)
   status      String   @default("UPCOMING") // UPCOMING | LIVE | COMPLETED | CANCELLED

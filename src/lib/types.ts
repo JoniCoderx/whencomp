@@ -15,6 +15,7 @@ export interface MatchDTO {
   id: string;
   title: string;
   game: string;
+  map: string | null;
   scheduledAt: string;
   durationMin: number;
   status: string;

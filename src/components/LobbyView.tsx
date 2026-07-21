@@ -6,6 +6,8 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { formatMatchTime, cn } from "@/lib/format";
 import { sfx } from "@/lib/sound";
 import { GameLogo } from "./GameLogo";
+import { MapThumb } from "./MapThumb";
+import { mapMeta } from "@/lib/maps";
 import { Avatar } from "./Avatar";
 import { Countdown } from "./Countdown";
 import { StatusBadge, matchStatusInfo } from "./StatusBadge";
@@ -25,7 +27,17 @@ export function LobbyView({ match }: { match: MatchDTO }) {
         ← {t("lobby.back")}
       </Link>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("card", match.game === "CS2" && "cs2-tactical")}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("card overflow-hidden", match.game === "CS2" && "cs2-tactical")}>
+        {match.map && (
+          <div className="-mx-5 -mt-5 mb-4">
+            <MapThumb code={match.map} rounded="rounded-none" className="h-32 w-full" label={false} />
+            <div className="flex items-center gap-2 bg-white/[0.03] px-4 py-2 text-sm">
+              <span>{mapMeta(match.map).emoji}</span>
+              <span className="font-bold">{mapMeta(match.map).name}</span>
+              <span className="text-slate-500">· {mapMeta(match.map).he}</span>
+            </div>
+          </div>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/5">

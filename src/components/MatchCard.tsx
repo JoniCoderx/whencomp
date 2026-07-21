@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useI18n } from "@/i18n/I18nProvider";
 import { formatMatchTime, cn } from "@/lib/format";
 import { sfx } from "@/lib/sound";
 import { buildShareText, whatsappLink, type ShareMatch } from "@/lib/share";
 import { Avatar } from "./Avatar";
 import { CalendarButton } from "./CalendarButton";
 import { GameLogo } from "./GameLogo";
+import { MapThumb } from "./MapThumb";
 import { Countdown } from "./Countdown";
 import { StatusBadge } from "./StatusBadge";
-import { CompActions } from "./CompActions";
 import type { MatchDTO } from "@/lib/types";
 
 export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: number }) {
-  const { t } = useI18n();
   const spots = match.confirmed.length;
 
   const sm: ShareMatch = {
@@ -34,6 +32,12 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
       transition={{ delay: Math.min(index * 0.05, 0.35) }}
       className={cn("card flex flex-col gap-4", match.game === "CS2" && "cs2-tactical")}
     >
+      {match.map && (
+        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="no-tap -mx-5 -mt-5 mb-1 block">
+          <MapThumb code={match.map} rounded="rounded-none" className="h-24 w-full" />
+        </Link>
+      )}
+
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <div className="grid h-11 w-11 place-items-center rounded-xl bg-white/5">
@@ -68,13 +72,11 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
         </span>
       </div>
 
-      <CompActions match={match} />
-
       <div className="flex items-center gap-2 border-t border-white/5 pt-3">
-        <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="btn-ghost flex-1 !py-2 text-sm no-tap">
-          {t("board.view")}
+        <Link href={`/matches/${match.id}`} onClick={() => sfx.click()} className="btn-primary flex-1 !py-2.5 text-sm no-tap">
+          לקומפ →
         </Link>
-        <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2 text-sm no-tap" title="WhatsApp">
+        <a href={whatsappLink(buildShareText(sm))} target="_blank" rel="noreferrer" onClick={() => sfx.soft()} className="btn-ghost !px-3 !py-2.5 text-sm no-tap" title="WhatsApp">
           📲
         </a>
         <CalendarButton matchId={match.id} share={sm} compact />

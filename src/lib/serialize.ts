@@ -23,6 +23,7 @@ export function toMatchDTO(m: any, includeInvite = false): MatchDTO {
     id: m.id,
     title: m.title,
     game: m.game,
+    map: m.map ?? null,
     scheduledAt: (m.scheduledAt instanceof Date ? m.scheduledAt : new Date(m.scheduledAt)).toISOString(),
     durationMin: m.durationMin ?? 90,
     status: m.status,

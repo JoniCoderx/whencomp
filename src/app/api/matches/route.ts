@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 const createSchema = z.object({
   title: z.string().trim().min(2, "שם קצר מדי").max(80),
   game: z.literal("CS2").default("CS2"),
+  map: z.string().max(32).optional().or(z.literal("")),
   scheduledAt: z.string(),
   durationMin: z.number().int().min(30).max(360).optional(),
   discordLink: z.string().url("קישור לא תקין").optional().or(z.literal("")),
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
     data: {
       title: data.title,
       game: "CS2",
+      map: data.map || null,
       scheduledAt: when,
       durationMin: data.durationMin ?? 90,
       discordLink: data.discordLink || null,
