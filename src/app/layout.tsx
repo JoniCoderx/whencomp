@@ -3,6 +3,7 @@ import { Heebo, Rubik } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/Navbar";
+import { MobileTopBar } from "@/components/MobileTopBar";
 import { BottomNav } from "@/components/BottomNav";
 
 const rubik = Rubik({ subsets: ["hebrew", "latin"], variable: "--font-sans", display: "swap" });
@@ -33,7 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="relative min-h-[100dvh] bg-grid">
             <div className="pointer-events-none fixed inset-0 bg-brand-sheen" aria-hidden />
             <Navbar />
-            <main className="safe-top relative mx-auto w-full max-w-6xl px-4 pb-28 pt-4 md:pb-16 md:pt-24">
+            <MobileTopBar />
+            <main className="safe-top relative mx-auto w-full max-w-6xl px-4 pb-28 pt-[4.75rem] md:pb-16 md:pt-24">
               {children}
             </main>
             <BottomNav />
