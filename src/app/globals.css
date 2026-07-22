@@ -174,17 +174,6 @@
   animation: wc-shine 6.5s linear infinite;
 }
 
-/* ---- Subtle CS2 team wallpaper wash behind the whole app ---- */
-.cs-bg {
-  background-image: url("/cs-team.webp");
-  background-size: cover;
-  background-position: center 18%;
-  opacity: 0.06;
-  filter: grayscale(0.35) contrast(1.05) brightness(0.9);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 45%, transparent 75%);
-  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 45%, transparent 75%);
-}
-
 /* ---- One-shot tactical flash for the primary CTA ---- */
 @keyframes wc-flash {
   0% { opacity: 0; transform: scale(0.6); }

@@ -18,11 +18,12 @@ export function Hero() {
         alt=""
         aria-hidden
         decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[center_22%] opacity-[0.16]"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[center_22%] opacity-[0.10] md:opacity-[0.17]"
       />
+      {/* Heavier veil on mobile so the copy stays crisp on a bright phone. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink-950/75 via-ink-950/55 to-ink-950/90"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink-950/85 via-ink-950/65 to-ink-950/95 md:from-ink-950/75 md:via-ink-950/55 md:to-ink-950/90"
       />
       <motion.div
         aria-hidden

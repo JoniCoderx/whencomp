@@ -31,7 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${rubik.variable} ${heebo.variable} font-sans no-tap`}>
         <Providers>
           <div className="relative min-h-[100dvh] bg-grid">
-            <div className="cs-bg pointer-events-none fixed inset-0" aria-hidden />
             <div className="pointer-events-none fixed inset-0 bg-brand-sheen" aria-hidden />
             <Navbar />
             <main className="safe-top relative mx-auto w-full max-w-6xl px-4 pb-28 pt-4 md:pb-16 md:pt-24">
