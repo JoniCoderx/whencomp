@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 
 const COLORS = ["#f59e0b", "#ff4655", "#84cc16", "#22d3ee", "#fbbf24", "#8b5cf6"];
@@ -119,16 +120,27 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // Never ship a hardcoded secret to production — a public secret lets anyone
-  // forge an admin JWT. Require it in prod; allow a dev-only fallback locally.
-  secret:
-    process.env.NEXTAUTH_SECRET ??
-    (process.env.NODE_ENV === "production"
-      ? (() => {
-          throw new Error("NEXTAUTH_SECRET is required in production");
-        })()
-      : "when-comp-dev-secret-only"),
+  secret: resolveSecret(),
 };
+
+// Resolve the NextAuth secret WITHOUT ever throwing at import/build time.
+// - Use NEXTAUTH_SECRET when set (the normal case at runtime).
+// - During `next build` (env vars are runtime-only) return a throwaway
+//   placeholder so the build can't fail — it is never used to sign real
+//   sessions because the real env var is present at runtime.
+// - In production runtime with no secret configured, use a RANDOM per-process
+//   secret (secure and unguessable, unlike a hardcoded public value) instead of
+//   crashing. Sessions won't survive a restart, but the app stays up and no
+//   public secret ships.
+function resolveSecret(): string {
+  if (process.env.NEXTAUTH_SECRET) return process.env.NEXTAUTH_SECRET;
+  if (process.env.NEXT_PHASE === "phase-production-build") return "build-time-placeholder";
+  if (process.env.NODE_ENV === "production") {
+    console.warn("⚠️ NEXTAUTH_SECRET is not set — using an ephemeral per-process secret. Set NEXTAUTH_SECRET to keep sessions across restarts.");
+    return randomBytes(32).toString("hex");
+  }
+  return "when-comp-dev-secret-only";
+}
 
 function hashCode(str: string): number {
   let h = 0;
