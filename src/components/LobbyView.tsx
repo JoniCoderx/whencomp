@@ -28,6 +28,19 @@ export function LobbyView({ match }: { match: MatchDTO }) {
       </Link>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("card overflow-hidden", match.game === "CS2" && "cs2-tactical")}>
+        {match.game === "CS2" && !match.map && (
+          <div className="relative -mx-5 -mt-5 mb-4 h-28 overflow-hidden">
+            <img
+              src="/cs-team.webp"
+              alt=""
+              aria-hidden
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover object-[center_24%] opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/45 to-transparent" />
+          </div>
+        )}
         {match.map && (
           <div className="-mx-5 -mt-5 mb-4">
             <MapThumb code={match.map} rounded="rounded-none" className="h-32 w-full" label={false} />

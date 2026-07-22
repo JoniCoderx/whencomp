@@ -11,6 +11,19 @@ export function Hero() {
   const { t } = useI18n();
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-ink-900/50 px-6 py-12 md:px-12 md:py-16">
+      {/* CS team photo — elegantly cropped, heavily darkened so it reads as
+          texture and never competes with the copy. */}
+      <img
+        src="/cs-team.webp"
+        alt=""
+        aria-hidden
+        decoding="async"
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[center_22%] opacity-[0.16]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink-950/75 via-ink-950/55 to-ink-950/90"
+      />
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl"

@@ -11,6 +11,7 @@ import { GameLogo } from "./GameLogo";
 import { MapThumb } from "./MapThumb";
 import { Countdown } from "./Countdown";
 import { StatusBadge } from "./StatusBadge";
+import { gameMeta } from "@/lib/games";
 import type { MatchDTO } from "@/lib/types";
 
 export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: number }) {
@@ -31,7 +32,8 @@ export function MatchCard({ match, index = 0 }: { match: MatchDTO; index?: numbe
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.35) }}
-      className={cn("card flex flex-col gap-4", match.game === "CS2" && "cs2-tactical")}
+      className={cn("card flex flex-col gap-4", match.game === "CS2" ? "cs2-tactical" : "game-accent")}
+      style={match.game === "CS2" ? undefined : ({ "--game": gameMeta(match.game).accent } as React.CSSProperties)}
     >
       {match.map && (
         <Link href={`/matches/${match.id}`} onClick={() => sfx.soft()} className="no-tap -mx-5 -mt-5 mb-1 block overflow-hidden rounded-t-2xl">
