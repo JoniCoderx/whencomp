@@ -14,15 +14,25 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+// A comp is "over" once its start + duration has fully passed, or it was
+// completed/cancelled. Over comps are dropped from the boards so the home page
+// only ever shows what's still relevant.
+function isOver(m: { scheduledAt: string | Date; durationMin?: number | null; status: string }): boolean {
+  if (m.status === "COMPLETED" || m.status === "CANCELLED") return true;
+  const end = new Date(m.scheduledAt).getTime() + (m.durationMin ?? 90) * 60000;
+  return Date.now() > end;
+}
+
 export async function getUpcomingMatches(limit?: number): Promise<MatchDTO[]> {
   return safe(async () => {
     const matches = await prisma.match.findMany({
       where: { status: { in: ["UPCOMING", "LIVE"] }, isPrivate: false },
       orderBy: { scheduledAt: "asc" },
-      take: limit,
       include: matchInclude,
     });
-    return matches.map((m) => toMatchDTO(m));
+    // Drop comps whose time already passed, then apply the limit.
+    const live = matches.map((m) => toMatchDTO(m)).filter((m) => !isOver(m));
+    return typeof limit === "number" ? live.slice(0, limit) : live;
   }, []);
 }
 
@@ -33,7 +43,7 @@ export async function getAllPublicMatches(): Promise<MatchDTO[]> {
       orderBy: { scheduledAt: "asc" },
       include: matchInclude,
     });
-    return matches.map((m) => toMatchDTO(m));
+    return matches.map((m) => toMatchDTO(m)).filter((m) => !isOver(m));
   }, []);
 }
 

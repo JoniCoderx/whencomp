@@ -116,6 +116,23 @@ export function countdownTextHe(date: string | Date, now = Date.now()): string {
   return "מתחיל בעוד פחות מדקה";
 }
 
+// A comp is "at risk" when it's getting close to start but still isn't close to
+// filling up — worth highlighting so people jump in (or the host cancels).
+// Window: within 4h of start, not started/ended, and under half the seats.
+export function matchAtRisk(
+  startIso: string | Date,
+  confirmed: number,
+  capacity: number,
+  now = Date.now(),
+): boolean {
+  const start = new Date(startIso).getTime();
+  const msToStart = start - now;
+  if (msToStart <= 0) return false; // already started/passed
+  if (msToStart > 4 * 60 * 60 * 1000) return false; // more than 4h away
+  if (confirmed >= capacity) return false; // full
+  return confirmed < Math.ceil(capacity / 2); // under half full
+}
+
 export type MatchPhase = "upcoming" | "soon" | "live" | "ended";
 
 // One consistent phase machine driven off UTC timestamps.
