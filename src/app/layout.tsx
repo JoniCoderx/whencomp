@@ -43,7 +43,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Providers>
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}`,
+            __html: `(function(){
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}
+// Self-heal: if a JS chunk fails to load (usually a stale cache after a new
+// deploy), clear caches + the service worker and reload once.
+function heal(msg){
+  if(!/ChunkLoadError|Loading chunk|error loading dynamically imported module|Importing a module script failed/i.test(msg||''))return;
+  try{if(sessionStorage.getItem('wc-healed'))return;sessionStorage.setItem('wc-healed','1');}catch(e){}
+  var done=function(){location.reload();};
+  try{
+    var jobs=[];
+    if('serviceWorker' in navigator){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}).catch(function(){}));}
+    if(window.caches){jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}).catch(function(){}));}
+    Promise.all(jobs).then(done,done);
+  }catch(e){done();}
+}
+window.addEventListener('error',function(e){heal(e&&e.message);});
+window.addEventListener('unhandledrejection',function(e){heal(e&&e.reason&&(e.reason.message||String(e.reason)));});
+})();`,
           }}
         />
       </body>
